@@ -61,7 +61,7 @@
             var isValid = false;
 
             if (provider === 'openai') {
-                isValid = /^sk-[A-Za-z0-9]{48}$/.test(apiKey);
+                isValid = /^sk-(?:proj-)?[A-Za-z0-9_-]{20,}$/.test(apiKey);
             } else if (provider === 'claude') {
                 isValid = /^sk-ant-[A-Za-z0-9_-]+$/.test(apiKey);
             }

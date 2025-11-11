@@ -32,6 +32,13 @@ define( 'ANDW_AI_TRANSLATE_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 class ANDW_AI_Translate {
 
 	/**
+	 * Admin settings manager instance.
+	 *
+	 * @var ANDW_AI_Translate_Admin_Settings|null
+	 */
+	private $admin_settings = null;
+
+	/**
 	 * コンストラクタ
 	 */
 	public function __construct() {
@@ -89,6 +96,9 @@ class ANDW_AI_Translate {
 	private function setup_hooks() {
 		// 管理画面関連
 		if ( is_admin() ) {
+			if ( class_exists( 'ANDW_AI_Translate_Admin_Settings' ) ) {
+				$this->admin_settings = new ANDW_AI_Translate_Admin_Settings();
+			}
 			add_action( 'admin_init', array( $this, 'admin_init' ) );
 			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 			add_action( 'admin_bar_menu', array( $this, 'admin_bar_menu' ), 100 );
@@ -180,7 +190,9 @@ class ANDW_AI_Translate {
 	 * 管理画面メニュー追加
 	 */
 	public function admin_menu() {
-		if ( class_exists( 'ANDW_AI_Translate_Admin_Settings' ) ) {
+		if ( $this->admin_settings instanceof ANDW_AI_Translate_Admin_Settings ) {
+			$this->admin_settings->add_menu();
+		} elseif ( class_exists( 'ANDW_AI_Translate_Admin_Settings' ) ) {
 			$admin_settings = new ANDW_AI_Translate_Admin_Settings();
 			$admin_settings->add_menu();
 		}
