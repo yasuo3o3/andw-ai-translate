@@ -75,6 +75,9 @@
         },
 
         checkApiStatus: function() {
+            // API状態チェック機能は現在未実装のため、コメントアウト
+            // 将来的に実装する場合はAJAXハンドラーの追加が必要
+            /*
             $.ajax({
                 url: andwAITranslate.ajaxUrl,
                 type: 'POST',
@@ -88,6 +91,7 @@
                     }
                 }
             });
+            */
         },
 
         updateApiStatus: function(status) {

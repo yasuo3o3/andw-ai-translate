@@ -106,10 +106,29 @@ class ANDW_AI_Translate_Admin_Settings {
 			error_log( 'andW AI Translate: フォーム送信を検出 - ' . print_r( array_keys( $_POST ), true ) );
 		}
 
-		// nonce と権限チェック
-		if ( ! isset( $_POST['andw_ai_translate_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['andw_ai_translate_nonce'] ) ), 'andw_ai_translate_save_settings' ) ) {
+		// nonce と権限チェック（複数のnonceフィールドに対応）
+		$nonce_fields = array(
+			'andw_ai_translate_nonce_general',
+			'andw_ai_translate_nonce_api',
+			'andw_ai_translate_nonce_delivery',
+			'andw_ai_translate_nonce_extend',
+			'andw_ai_translate_nonce_stop'
+		);
+
+		$nonce_verified = false;
+		foreach ( $nonce_fields as $nonce_field ) {
+			if ( isset( $_POST[ $nonce_field ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ $nonce_field ] ) ), 'andw_ai_translate_save_settings' ) ) {
+				$nonce_verified = true;
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'andW AI Translate: nonce検証成功 - ' . $nonce_field );
+				}
+				break;
+			}
+		}
+
+		if ( ! $nonce_verified ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: nonce検証失敗' );
+				error_log( 'andW AI Translate: nonce検証失敗 - ' . print_r( array_keys( $_POST ), true ) );
 			}
 			add_settings_error( 'andw_ai_translate', 'nonce_failed', __( 'セキュリティチェックに失敗しました。再度お試しください。', 'andw-ai-translate' ), 'error' );
 			return;
@@ -352,7 +371,7 @@ class ANDW_AI_Translate_Admin_Settings {
 			<?php endif; ?>
 
 			<form method="post" action="">
-				<?php wp_nonce_field( 'andw_ai_translate_save_settings', 'andw_ai_translate_nonce' ); ?>
+				<?php wp_nonce_field( 'andw_ai_translate_save_settings', 'andw_ai_translate_nonce_general' ); ?>
 
 				<!-- 一般設定 -->
 				<h2><?php esc_html_e( '一般設定', 'andw-ai-translate' ); ?></h2>
@@ -418,7 +437,7 @@ class ANDW_AI_Translate_Admin_Settings {
 
 			<!-- APIキー設定 -->
 			<form method="post" action="">
-				<?php wp_nonce_field( 'andw_ai_translate_save_settings', 'andw_ai_translate_nonce' ); ?>
+				<?php wp_nonce_field( 'andw_ai_translate_save_settings', 'andw_ai_translate_nonce_api' ); ?>
 
 				<h2><?php esc_html_e( 'APIキー設定', 'andw-ai-translate' ); ?></h2>
 				<table class="form-table">
@@ -454,7 +473,7 @@ class ANDW_AI_Translate_Admin_Settings {
 			<h2><?php esc_html_e( '期限管理（所有者のみ）', 'andw-ai-translate' ); ?></h2>
 
 			<form method="post" action="" onsubmit="return confirm('<?php echo esc_js( __( '本当に納品完了を実行しますか？', 'andw-ai-translate' ) ); ?>');">
-				<?php wp_nonce_field( 'andw_ai_translate_save_settings', 'andw_ai_translate_nonce' ); ?>
+				<?php wp_nonce_field( 'andw_ai_translate_save_settings', 'andw_ai_translate_nonce_delivery' ); ?>
 				<?php if ( ! $expiry_info['delivery_date'] ) : ?>
 					<p class="submit">
 						<input type="submit" name="mark_delivery_completed" class="button-secondary" value="<?php esc_attr_e( '納品完了', 'andw-ai-translate' ); ?>" />
@@ -464,7 +483,7 @@ class ANDW_AI_Translate_Admin_Settings {
 
 			<?php if ( $expiry_info['expiry_date'] && ! $expiry_info['extension_used'] && ! $expiry_info['is_expired'] ) : ?>
 			<form method="post" action="" onsubmit="return confirm('<?php echo esc_js( __( '本当に期限を延長しますか？', 'andw-ai-translate' ) ); ?>');">
-				<?php wp_nonce_field( 'andw_ai_translate_save_settings', 'andw_ai_translate_nonce' ); ?>
+				<?php wp_nonce_field( 'andw_ai_translate_save_settings', 'andw_ai_translate_nonce_extend' ); ?>
 				<p class="submit">
 					<input type="submit" name="extend_expiry" class="button-secondary" value="<?php esc_attr_e( '期限延長（30日・1回のみ）', 'andw-ai-translate' ); ?>" />
 				</p>
@@ -472,7 +491,7 @@ class ANDW_AI_Translate_Admin_Settings {
 			<?php endif; ?>
 
 			<form method="post" action="" onsubmit="return confirm('<?php echo esc_js( __( '本当に即時停止しますか？この操作は取り消せません。', 'andw-ai-translate' ) ); ?>');">
-				<?php wp_nonce_field( 'andw_ai_translate_save_settings', 'andw_ai_translate_nonce' ); ?>
+				<?php wp_nonce_field( 'andw_ai_translate_save_settings', 'andw_ai_translate_nonce_stop' ); ?>
 				<p class="submit">
 					<input type="submit" name="emergency_stop" class="button-secondary" style="background-color: #dc3232; border-color: #dc3232; color: white;" value="<?php esc_attr_e( '即時停止', 'andw-ai-translate' ); ?>" />
 				</p>
