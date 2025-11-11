@@ -230,8 +230,21 @@
         },
 
         displayTranslationResults: function(data) {
-            $('#andw-translated-content').html(this.formatContent(data.translation.translated_content));
-            $('#andw-back-translated-content').html(this.formatContent(data.back_translation.back_translated_text));
+            // デバッグログ: データ構造確認
+            console.log('andW AI Translate - 翻訳データ構造:', data);
+
+            // 翻訳結果の表示（英語など目標言語）
+            var translatedContent = data.translation.translated_content || '';
+            $('#andw-translated-content').html(this.formatContent(translatedContent));
+
+            // 再翻訳結果の表示（品質確認用の日本語）
+            var backTranslatedContent = data.back_translation.back_translated_text || '';
+            $('#andw-back-translated-content').html(this.formatContent(backTranslatedContent));
+
+            console.log('andW AI Translate - 表示内容:', {
+                translated: translatedContent,
+                back_translated: backTranslatedContent
+            });
 
             $('#andw-translation-results').show();
             $('#andw-ab-results').hide();

@@ -292,7 +292,7 @@ class ANDW_AI_Translate_Meta_Box {
 			wp_send_json_error( $result->get_error_message() );
 		}
 
-		// 再翻訳の実行
+		// 再翻訳の実行（品質確認用：翻訳結果を元の言語に戻す）
 		$back_translation = $this->translation_engine->back_translate( $result['translated_content'], 'ja', $provider );
 
 		if ( is_wp_error( $back_translation ) ) {
