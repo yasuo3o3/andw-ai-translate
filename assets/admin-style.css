@@ -1,0 +1,197 @@
+/**
+ * andW AI Translate - 管理画面スタイル
+ */
+
+.andw-ai-translate-settings h2 {
+	border-bottom: 2px solid #0073aa;
+	padding-bottom: 10px;
+	margin-top: 30px;
+}
+
+.andw-ai-translate-settings .form-table th {
+	width: 200px;
+	font-weight: bold;
+}
+
+.andw-ai-translate-settings .form-table td {
+	vertical-align: top;
+	padding-top: 15px;
+}
+
+.andw-ai-translate-settings .notice {
+	margin: 20px 0;
+	padding: 15px;
+	border-left: 4px solid #00a0d2;
+	background: #f1f1f1;
+}
+
+.andw-ai-translate-settings .notice.notice-error {
+	border-left-color: #dc3232;
+	background: #ffebee;
+}
+
+.andw-ai-translate-settings .notice.notice-warning {
+	border-left-color: #ffb900;
+	background: #fff8e1;
+}
+
+.andw-ai-translate-settings .notice.notice-success {
+	border-left-color: #46b450;
+	background: #f0fff4;
+}
+
+/* APIキーの状態表示 */
+.andw-api-key-status {
+	display: inline-block;
+	margin-left: 10px;
+	font-weight: bold;
+}
+
+.andw-api-key-status.connected {
+	color: #46b450;
+}
+
+.andw-api-key-status.disconnected {
+	color: #dc3232;
+}
+
+/* 期限情報のスタイル */
+.andw-expiry-info {
+	background: #f0f6fc;
+	border: 1px solid #c3c4c7;
+	border-left: 4px solid #0073aa;
+	margin: 20px 0;
+	padding: 15px;
+}
+
+.andw-expiry-info.expired {
+	background: #ffebee;
+	border-left-color: #dc3232;
+}
+
+.andw-expiry-info.warning {
+	background: #fff8e1;
+	border-left-color: #ffb900;
+}
+
+/* 即時停止ボタンのスタイル */
+.andw-emergency-stop {
+	background-color: #dc3232 !important;
+	border-color: #dc3232 !important;
+	color: white !important;
+}
+
+.andw-emergency-stop:hover {
+	background-color: #b32d2e !important;
+	border-color: #b32d2e !important;
+}
+
+/* 設定セクションの区切り */
+.andw-settings-section {
+	background: white;
+	border: 1px solid #c3c4c7;
+	margin: 20px 0;
+	padding: 20px;
+}
+
+.andw-settings-section h3 {
+	margin-top: 0;
+	border-bottom: 1px solid #ddd;
+	padding-bottom: 10px;
+}
+
+/* 使用制限の表示 */
+.andw-usage-stats {
+	display: flex;
+	gap: 20px;
+	margin: 15px 0;
+}
+
+.andw-usage-stat {
+	background: #f9f9f9;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 10px 15px;
+	text-align: center;
+	flex: 1;
+}
+
+.andw-usage-stat .label {
+	font-size: 12px;
+	color: #666;
+	display: block;
+}
+
+.andw-usage-stat .value {
+	font-size: 18px;
+	font-weight: bold;
+	color: #0073aa;
+	display: block;
+}
+
+.andw-usage-stat.over-limit .value {
+	color: #dc3232;
+}
+
+/* 言語選択のスタイル */
+.andw-language-selector {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 10px 0;
+}
+
+.andw-language-option {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	padding: 5px 10px;
+	background: #f1f1f1;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+}
+
+.andw-language-option input[type="checkbox"] {
+	margin: 0;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+	.andw-ai-translate-settings .form-table th,
+	.andw-ai-translate-settings .form-table td {
+		display: block;
+		width: 100%;
+		padding: 10px 0;
+	}
+
+	.andw-ai-translate-settings .form-table th {
+		font-size: 14px;
+		margin-bottom: 5px;
+	}
+
+	.andw-usage-stats {
+		flex-direction: column;
+	}
+}
+
+/* ローディング状態 */
+.andw-loading {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+.andw-spinner {
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	border: 3px solid #f3f3f3;
+	border-top: 3px solid #0073aa;
+	border-radius: 50%;
+	animation: andw-spin 1s linear infinite;
+	margin-left: 10px;
+}
+
+@keyframes andw-spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
