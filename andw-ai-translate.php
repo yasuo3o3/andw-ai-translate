@@ -105,6 +105,17 @@ class ANDW_AI_Translate {
 			if ( class_exists( 'ANDW_AI_Translate_Admin_Settings' ) ) {
 				$this->admin_settings = new ANDW_AI_Translate_Admin_Settings();
 			}
+
+			// メタボックスの初期化
+			if ( class_exists( 'ANDW_AI_Translate_Meta_Box' ) ) {
+				new ANDW_AI_Translate_Meta_Box();
+			}
+
+			// 画像メタボックスの初期化
+			if ( class_exists( 'ANDW_AI_Translate_Image_Meta' ) ) {
+				new ANDW_AI_Translate_Image_Meta();
+			}
+
 			add_action( 'admin_init', array( $this, 'admin_init' ) );
 			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 			add_action( 'admin_bar_menu', array( $this, 'admin_bar_menu' ), 100 );
