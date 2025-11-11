@@ -52,9 +52,15 @@ class ANDW_AI_Translate {
 	 */
 	public function init() {
 		// 環境チェック（ステージング/開発では無効化）
+		// 開発作業中のため一時的にコメントアウト
+		/*
 		if ( $this->is_staging_or_development() ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'andW AI Translate: 開発/ステージング環境のため機能を無効化' );
+			}
 			return;
 		}
+		*/
 
 		// 翻訳ファイルの読み込み（WP 4.6+では自動だが明示的に記載）
 		load_plugin_textdomain( 'andw-ai-translate', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
@@ -113,17 +119,31 @@ class ANDW_AI_Translate {
 	 * ステージング/開発環境の判定
 	 */
 	private function is_staging_or_development() {
+		// デバッグ情報の出力
+		$host = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : '';
+		$env_type = defined( 'WP_ENVIRONMENT_TYPE' ) ? WP_ENVIRONMENT_TYPE : 'unknown';
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'andW AI Translate: 環境チェック - ホスト: ' . $host . ', 環境タイプ: ' . $env_type );
+		}
+
 		// 環境変数チェック
 		if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
-			return in_array( WP_ENVIRONMENT_TYPE, array( 'development', 'staging' ), true );
+			$is_dev_env = in_array( WP_ENVIRONMENT_TYPE, array( 'development', 'staging' ), true );
+			if ( $is_dev_env && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'andW AI Translate: WP_ENVIRONMENT_TYPE により開発環境と判定' );
+			}
+			return $is_dev_env;
 		}
 
 		// ドメイン判定
-		$host = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : '';
 		$staging_patterns = array( 'localhost', '.local', 'staging', 'dev.', 'test.' );
 
 		foreach ( $staging_patterns as $pattern ) {
 			if ( strpos( $host, $pattern ) !== false ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'andW AI Translate: ホスト名パターン "' . $pattern . '" により開発環境と判定' );
+				}
 				return true;
 			}
 		}
