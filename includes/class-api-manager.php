@@ -320,4 +320,26 @@ class ANDW_AI_Translate_API_Manager {
 		// いずれかのAPIキーが存在するか
 		return $this->has_api_key( 'openai' ) || $this->has_api_key( 'claude' );
 	}
+
+	/**
+	 * マスクされたAPIキーを取得
+	 */
+	public function get_masked_api_key( $provider ) {
+		$api_key = $this->get_api_key( $provider );
+		if ( empty( $api_key ) ) {
+			return false;
+		}
+
+		$key_length = strlen( $api_key );
+
+		// 短いキーの場合は安全な表示にする
+		if ( $key_length <= 15 ) {
+			return substr( $api_key, 0, 5 ) . '*****';
+		}
+
+		// 先頭10文字 + ***** + 末尾5文字
+		$start = substr( $api_key, 0, 10 );
+		$end = substr( $api_key, -5 );
+		return $start . '*****' . $end;
+	}
 }

@@ -479,8 +479,10 @@ class ANDW_AI_Translate_Admin_Settings {
 						<th scope="row"><?php esc_html_e( 'OpenAI APIキー', 'andw-ai-translate' ); ?></th>
 						<td>
 							<input type="password" name="openai_api_key" class="regular-text" placeholder="<?php esc_attr_e( 'sk-...', 'andw-ai-translate' ); ?>" />
-							<?php if ( $this->api_manager->has_api_key( 'openai' ) ) : ?>
-								<span style="color: green;">✓ <?php esc_html_e( '設定済み', 'andw-ai-translate' ); ?></span>
+							<?php
+							$masked_openai_key = $this->api_manager->get_masked_api_key( 'openai' );
+							if ( $masked_openai_key ) : ?>
+								<span style="color: green;">✓ <?php esc_html_e( '設定済み', 'andw-ai-translate' ); ?>: <code><?php echo esc_html( $masked_openai_key ); ?></code></span>
 							<?php endif; ?>
 							<p class="description"><?php esc_html_e( '空欄のままにすると既存の設定を保持します', 'andw-ai-translate' ); ?></p>
 						</td>
@@ -489,8 +491,10 @@ class ANDW_AI_Translate_Admin_Settings {
 						<th scope="row"><?php esc_html_e( 'Claude APIキー', 'andw-ai-translate' ); ?></th>
 						<td>
 							<input type="password" name="claude_api_key" class="regular-text" placeholder="<?php esc_attr_e( 'sk-ant-...', 'andw-ai-translate' ); ?>" />
-							<?php if ( $this->api_manager->has_api_key( 'claude' ) ) : ?>
-								<span style="color: green;">✓ <?php esc_html_e( '設定済み', 'andw-ai-translate' ); ?></span>
+							<?php
+							$masked_claude_key = $this->api_manager->get_masked_api_key( 'claude' );
+							if ( $masked_claude_key ) : ?>
+								<span style="color: green;">✓ <?php esc_html_e( '設定済み', 'andw-ai-translate' ); ?>: <code><?php echo esc_html( $masked_claude_key ); ?></code></span>
 							<?php endif; ?>
 							<p class="description"><?php esc_html_e( '空欄のままにすると既存の設定を保持します', 'andw-ai-translate' ); ?></p>
 						</td>
