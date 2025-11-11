@@ -163,8 +163,8 @@ class ANDW_AI_Translate_API_Manager {
 	 * OpenAI APIキーの検証
 	 */
 	private function validate_openai_key( $api_key ) {
-		// フォーマットチェック
-		if ( ! preg_match( '/^sk-[A-Za-z0-9]{48}$/', $api_key ) ) {
+		// フォーマットチェック（従来形式 sk- と新形式 sk-proj- の両方に対応）
+		if ( ! preg_match( '/^sk-(?:proj-)?[A-Za-z0-9_-]{20,}$/', $api_key ) ) {
 			return new WP_Error( 'invalid_format', __( 'OpenAI APIキーのフォーマットが正しくありません', 'andw-ai-translate' ) );
 		}
 
