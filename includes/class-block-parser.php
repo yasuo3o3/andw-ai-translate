@@ -122,6 +122,7 @@ class ANDW_AI_Translate_Block_Parser {
 
 				// 翻訳結果でHTMLを更新
 				$block['innerHTML'] = $this->replace_translatable_content( $block['innerHTML'], $translation_result['translated_text'] );
+				$this->sync_inner_content( $block );
 
 				// 翻訳データの記録
 				$translation_data[] = array(
@@ -146,6 +147,8 @@ class ANDW_AI_Translate_Block_Parser {
 				}
 				$block['innerBlocks'][ $index ] = $result;
 			}
+		} else {
+			$this->sync_inner_content( $block );
 		}
 
 		return $block;
@@ -241,6 +244,21 @@ class ANDW_AI_Translate_Block_Parser {
 		}
 
 		return $attrs;
+	}
+
+	/**
+	 * innerHTML と innerContent の内容を同期
+	 *
+	 * @param array &$block ブロックデータ
+	 */
+	private function sync_inner_content( &$block ) {
+		if ( isset( $block['innerBlocks'] ) && ! empty( $block['innerBlocks'] ) ) {
+			return;
+		}
+
+		if ( isset( $block['innerHTML'] ) && $block['innerHTML'] !== '' ) {
+			$block['innerContent'] = array( $block['innerHTML'] );
+		}
 	}
 
 	/**
