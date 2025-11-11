@@ -1,0 +1,20 @@
+# Exclude development files from distribution
+.gitattributes export-ignore
+.gitignore export-ignore
+.distignore export-ignore
+phpcs.xml export-ignore
+package.json export-ignore
+package-lock.json export-ignore
+node_modules export-ignore
+debug-tools export-ignore
+docs export-ignore
+zips export-ignore
+.vscode export-ignore
+.history export-ignore
+.claude export-ignore
+BUILD.md export-ignore
+CHANGELOG.md export-ignore
+TESTING.md export-ignore
+DEVELOPER.md export-ignore
+README.md export-ignore
+src export-ignore
