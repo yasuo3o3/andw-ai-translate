@@ -244,8 +244,14 @@ class ANDW_AI_Translate {
 	public function filter_image_metadata( $metadata, $attachment_id ) {
 		if ( class_exists( 'ANDW_AI_Translate_Image_Meta' ) ) {
 			$image_meta = new ANDW_AI_Translate_Image_Meta();
-			return $image_meta->filter_metadata( $metadata, $attachment_id );
+
+			// メソッド存在チェックを追加してエラーを回避
+			if ( method_exists( $image_meta, 'filter_metadata' ) ) {
+				return $image_meta->filter_metadata( $metadata, $attachment_id );
+			}
 		}
+
+		// 安全回避: オリジナルメタデータをそのまま返す
 		return $metadata;
 	}
 }

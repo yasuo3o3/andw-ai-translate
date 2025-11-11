@@ -442,6 +442,24 @@ class ANDW_AI_Translate_Image_Meta {
 	}
 
 	/**
+	 * 画像メタデータのフィルタ処理
+	 */
+	public function filter_metadata( $metadata, $attachment_id ) {
+		// 現在の言語を判定
+		$current_language = $this->get_current_language();
+
+		// 日本語の場合はそのまま返す
+		if ( $current_language === 'ja' ) {
+			return $metadata;
+		}
+
+		// 言語別画像メタデータの処理
+		// 現在は基本的な実装として、オリジナルメタデータをそのまま返す
+		// 将来的に画像メタデータの言語別処理が必要な場合はここで実装
+		return $metadata;
+	}
+
+	/**
 	 * 対応言語の一覧取得
 	 */
 	public function get_supported_languages() {
