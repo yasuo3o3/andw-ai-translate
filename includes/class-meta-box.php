@@ -396,9 +396,20 @@ class ANDW_AI_Translate_Meta_Box {
 			wp_send_json_error( __( '承認する翻訳データが見つかりません', 'andw-ai-translate' ) );
 		}
 
-		// 言語別ページの生成（別クラスで実装予定）
-		// $page_generator = new ANDW_AI_Translate_Page_Generator();
-		// $page_generator->create_translated_page( $post_id, $target_language, $pending_data['translation_result'] );
+		// 言語別ページの生成
+		if ( class_exists( 'ANDW_AI_Translate_Page_Generator' ) ) {
+			$page_generator = new ANDW_AI_Translate_Page_Generator();
+			$result = $page_generator->create_translated_page( $post_id, $target_language, $pending_data );
+
+			// ページ生成結果をデバッグログに記録
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				if ( is_wp_error( $result ) ) {
+					error_log( 'andW AI Translate - ページ生成失敗: ' . $result->get_error_message() );
+				} else {
+					error_log( 'andW AI Translate - ページ生成成功: 投稿ID ' . $result );
+				}
+			}
+		}
 
 		// 承認済みデータとして保存
 		update_post_meta( $post_id, '_andw_ai_translate_approved_' . $target_language, $pending_data );
