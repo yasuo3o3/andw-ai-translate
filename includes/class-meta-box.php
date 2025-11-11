@@ -60,8 +60,8 @@ class ANDW_AI_Translate_Meta_Box {
 				__( 'AI翻訳', 'andw-ai-translate' ),
 				array( $this, 'render_meta_box' ),
 				$screen,
-				'side',
-				'high'
+				'normal',
+				'default'
 			);
 		}
 	}

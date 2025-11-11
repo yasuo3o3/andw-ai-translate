@@ -52,6 +52,13 @@
             var targetLanguage = $('#andw-target-language').val();
             var provider = $('#andw-provider').val();
 
+            // デバッグログ: 翻訳開始
+            console.log('andW AI Translate - 翻訳開始:', {
+                target_language: targetLanguage,
+                provider: provider,
+                post_id: andwTranslate.postId
+            });
+
             this.showProgress(andwTranslate.strings.translating, 0);
 
             $.ajax({
@@ -65,15 +72,26 @@
                     provider: provider
                 },
                 success: function(response) {
+                    // デバッグログ: AJAX応答
+                    console.log('andW AI Translate - AJAX応答:', response);
+
                     if (response.success) {
+                        console.log('andW AI Translate - 翻訳成功:', response.data);
                         andwTranslateMeta.displayTranslationResults(response.data);
                         andwTranslateMeta.hideProgress();
                     } else {
+                        console.error('andW AI Translate - 翻訳エラー:', response.data);
                         andwTranslateMeta.showError(response.data || andwTranslate.strings.error);
                         andwTranslateMeta.hideProgress();
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
+                    // デバッグログ: AJAX接続エラー
+                    console.error('andW AI Translate - AJAX接続エラー:', {
+                        status: status,
+                        error: error,
+                        response: xhr.responseText
+                    });
                     andwTranslateMeta.showError(andwTranslate.strings.error);
                     andwTranslateMeta.hideProgress();
                 }
