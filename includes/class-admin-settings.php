@@ -138,16 +138,24 @@ class ANDW_AI_Translate_Admin_Settings {
 			wp_die( esc_html__( 'この操作を実行する権限がありません', 'andw-ai-translate' ) );
 		}
 
-		// 設定保存の処理
-		if ( isset( $_POST['save_settings'] ) ) {
+		// フォーム種類の自動判定
+		$is_general_form = isset( $_POST['default_provider'] ) || isset( $_POST['target_languages'] ) || isset( $_POST['expiry_preset'] ) || isset( $_POST['limit_daily'] ) || isset( $_POST['limit_monthly'] );
+		$is_api_form = isset( $_POST['openai_api_key'] ) || isset( $_POST['claude_api_key'] );
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'andW AI Translate: フォーム種類判定 - 一般設定: ' . ( $is_general_form ? 'Yes' : 'No' ) . ', APIキー: ' . ( $is_api_form ? 'Yes' : 'No' ) );
+		}
+
+		// 設定保存の処理（従来のボタンチェック + 自動判定）
+		if ( isset( $_POST['save_settings'] ) || $is_general_form ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( 'andW AI Translate: 一般設定保存を実行' );
 			}
 			$this->save_general_settings();
 		}
 
-		// APIキー保存の処理
-		if ( isset( $_POST['save_api_keys'] ) ) {
+		// APIキー保存の処理（従来のボタンチェック + 自動判定）
+		if ( isset( $_POST['save_api_keys'] ) || $is_api_form ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( 'andW AI Translate: APIキー保存を実行' );
 			}
@@ -255,10 +263,19 @@ class ANDW_AI_Translate_Admin_Settings {
 		// OpenAI APIキー
 		if ( ! empty( $_POST['openai_api_key'] ) ) {
 			$api_key = sanitize_text_field( wp_unslash( $_POST['openai_api_key'] ) );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'andW AI Translate: OpenAI APIキー保存を試行' );
+			}
 			$result = $this->api_manager->save_api_key( 'openai', $api_key );
 			if ( is_wp_error( $result ) ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'andW AI Translate: OpenAI APIキー保存失敗 - ' . $result->get_error_message() );
+				}
 				add_settings_error( 'andw_ai_translate', 'openai_key_error', $result->get_error_message(), 'error' );
 			} else {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'andW AI Translate: OpenAI APIキー保存成功' );
+				}
 				$saved = true;
 			}
 		}
@@ -266,16 +283,33 @@ class ANDW_AI_Translate_Admin_Settings {
 		// Claude APIキー
 		if ( ! empty( $_POST['claude_api_key'] ) ) {
 			$api_key = sanitize_text_field( wp_unslash( $_POST['claude_api_key'] ) );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'andW AI Translate: Claude APIキー保存を試行' );
+			}
 			$result = $this->api_manager->save_api_key( 'claude', $api_key );
 			if ( is_wp_error( $result ) ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'andW AI Translate: Claude APIキー保存失敗 - ' . $result->get_error_message() );
+				}
 				add_settings_error( 'andw_ai_translate', 'claude_key_error', $result->get_error_message(), 'error' );
 			} else {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'andW AI Translate: Claude APIキー保存成功' );
+				}
 				$saved = true;
 			}
 		}
 
 		if ( $saved ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'andW AI Translate: APIキー保存完了' );
+			}
 			add_settings_error( 'andw_ai_translate', 'api_keys_saved', __( 'APIキーを保存しました', 'andw-ai-translate' ), 'updated' );
+		} else {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'andW AI Translate: 保存するAPIキーがありませんでした' );
+			}
+			add_settings_error( 'andw_ai_translate', 'no_api_keys', __( '保存するAPIキーがありませんでした', 'andw-ai-translate' ), 'notice-warning' );
 		}
 	}
 
