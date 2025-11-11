@@ -305,6 +305,26 @@ class ANDW_AI_Translate_Admin_Settings {
 						</td>
 					</tr>
 					<tr>
+						<th scope="row"><?php esc_html_e( '対象言語', 'andw-ai-translate' ); ?></th>
+						<td>
+							<?php
+							$available_languages = array(
+								'en' => __( '英語 (English)', 'andw-ai-translate' ),
+								'zh' => __( '中国語 (中文)', 'andw-ai-translate' ),
+								'ko' => __( '韓国語 (한국어)', 'andw-ai-translate' ),
+							);
+							foreach ( $available_languages as $code => $label ) :
+								$checked = in_array( $code, $target_languages, true ) ? 'checked="checked"' : '';
+							?>
+								<label style="display: block; margin: 5px 0;">
+									<input type="checkbox" name="target_languages[]" value="<?php echo esc_attr( $code ); ?>" <?php echo $checked; ?> />
+									<?php echo esc_html( $label ); ?>
+								</label>
+							<?php endforeach; ?>
+							<p class="description"><?php esc_html_e( '翻訳対象とする言語を選択してください', 'andw-ai-translate' ); ?></p>
+						</td>
+					</tr>
+					<tr>
 						<th scope="row"><?php esc_html_e( '期限プリセット', 'andw-ai-translate' ); ?></th>
 						<td>
 							<select name="expiry_preset">

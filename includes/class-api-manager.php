@@ -240,8 +240,7 @@ class ANDW_AI_Translate_API_Manager {
 	 * 所有者かどうかの判定
 	 */
 	private function is_owner() {
-		$current_user = wp_get_current_user();
-		return $current_user && user_can( $current_user, 'manage_options' ) && $current_user->ID === 1;
+		return current_user_can( 'manage_options' );
 	}
 
 	/**
