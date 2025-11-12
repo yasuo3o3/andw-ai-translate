@@ -101,10 +101,6 @@ class ANDW_AI_Translate_Admin_Settings {
 			return;
 		}
 
-		// デバッグ: フォーム送信の確認
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate: フォーム送信を検出 - ' . print_r( array_keys( $_POST ), true ) );
-		}
 
 		// nonce と権限チェック（複数のnonceフィールドに対応）
 		$nonce_fields = array(
@@ -119,17 +115,11 @@ class ANDW_AI_Translate_Admin_Settings {
 		foreach ( $nonce_fields as $nonce_field ) {
 			if ( isset( $_POST[ $nonce_field ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ $nonce_field ] ) ), 'andw_ai_translate_save_settings' ) ) {
 				$nonce_verified = true;
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate: nonce検証成功 - ' . $nonce_field );
-				}
 				break;
 			}
 		}
 
 		if ( ! $nonce_verified ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: nonce検証失敗 - ' . print_r( array_keys( $_POST ), true ) );
-			}
 			add_settings_error( 'andw_ai_translate', 'nonce_failed', __( 'セキュリティチェックに失敗しました。再度お試しください。', 'andw-ai-translate' ), 'error' );
 			return;
 		}
