@@ -130,25 +130,16 @@ class ANDW_AI_Translate_Page_Generator {
 		// 直接データ構造からの取得 (フォールバック1)
 		if ( isset( $translation_data['translated_content'] ) ) {
 			$content = $translation_data['translated_content'];
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - 直接データから本文取得成功: ' . mb_strlen( $content ) . '文字' );
-			}
 			return $content;
 		}
 
 		// A/B比較データ構造からの取得 (フォールバック2)
 		if ( isset( $translation_data['translation']['translated_content'] ) ) {
 			$content = $translation_data['translation']['translated_content'];
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - A/B比較データから本文取得成功: ' . mb_strlen( $content ) . '文字' );
-			}
 			return $content;
 		}
 
-		// データ取得失敗時のログ出力
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - 本文データ取得失敗、データ構造: ' . print_r( $translation_data, true ) );
-		}
+		// Debug logging removed
 
 		// 最終フォールバック: 空文字
 		return '';
