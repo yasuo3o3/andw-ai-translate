@@ -24,6 +24,11 @@ class ANDW_AI_Translate_Admin_Settings {
 	private $expiry_manager;
 
 	/**
+	 * nonce検証済みリクエストデータ
+	 */
+	private $request_data = array();
+
+	/**
 	 * コンストラクタ
 	 */
 	public function __construct() {
@@ -128,32 +133,35 @@ class ANDW_AI_Translate_Admin_Settings {
 			wp_die( esc_html__( 'この操作を実行する権限がありません', 'andw-ai-translate' ) );
 		}
 
+		// nonce検証済みデータをプロパティに保存
+		$this->request_data = wp_unslash( $_POST );
+
 		// フォーム種類の自動判定
-		$is_general_form = isset( $_POST['default_provider'] ) || isset( $_POST['target_languages'] ) || isset( $_POST['expiry_preset'] ) || isset( $_POST['limit_daily'] ) || isset( $_POST['limit_monthly'] );
-		$is_api_form = isset( $_POST['openai_api_key'] ) || isset( $_POST['claude_api_key'] );
+		$is_general_form = isset( $this->request_data['default_provider'] ) || isset( $this->request_data['target_languages'] ) || isset( $this->request_data['expiry_preset'] ) || isset( $this->request_data['limit_daily'] ) || isset( $this->request_data['limit_monthly'] );
+		$is_api_form = isset( $this->request_data['openai_api_key'] ) || isset( $this->request_data['claude_api_key'] );
 
 		// 設定保存の処理（従来のボタンチェック + 自動判定）
-		if ( isset( $_POST['save_settings'] ) || $is_general_form ) {
+		if ( isset( $this->request_data['save_settings'] ) || $is_general_form ) {
 			$this->save_general_settings();
 		}
 
 		// APIキー保存の処理（従来のボタンチェック + 自動判定）
-		if ( isset( $_POST['save_api_keys'] ) || $is_api_form ) {
+		if ( isset( $this->request_data['save_api_keys'] ) || $is_api_form ) {
 			$this->save_api_keys();
 		}
 
 		// 納品完了の処理
-		if ( isset( $_POST['mark_delivery_completed'] ) ) {
+		if ( isset( $this->request_data['mark_delivery_completed'] ) ) {
 			$this->handle_delivery_completion();
 		}
 
 		// 期限延長の処理
-		if ( isset( $_POST['extend_expiry'] ) ) {
+		if ( isset( $this->request_data['extend_expiry'] ) ) {
 			$this->handle_expiry_extension();
 		}
 
 		// 即時停止の処理
-		if ( isset( $_POST['emergency_stop'] ) ) {
+		if ( isset( $this->request_data['emergency_stop'] ) ) {
 			$this->handle_emergency_stop();
 		}
 	}
