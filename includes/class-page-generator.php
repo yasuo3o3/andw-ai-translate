@@ -153,9 +153,6 @@ class ANDW_AI_Translate_Page_Generator {
 		if ( $translation_data ) {
 			// ブロックパーサーからの直接データ
 			if ( isset( $translation_data['translated_title'] ) && ! empty( $translation_data['translated_title'] ) ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate - 事前翻訳タイトルを使用: ' . $translation_data['translated_title'] );
-				}
 				return $translation_data['translated_title'];
 			}
 			// 承認データ構造からの取得
@@ -168,25 +165,15 @@ class ANDW_AI_Translate_Page_Generator {
 		$translation_engine = new ANDW_AI_Translate_Translation_Engine();
 		$title_translation = $translation_engine->translate( $original_post->post_title, $language );
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - タイトル翻訳実行: ' . $original_post->post_title . ' -> ' . $language );
-		}
+		// Debug logging removed
 
 		if ( ! is_wp_error( $title_translation ) && isset( $title_translation['translated_text'] ) ) {
 			$translated_title = $title_translation['translated_text'];
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - タイトル翻訳成功: ' . $translated_title );
-			}
-
 			return $translated_title;
 		}
 
 		// 翻訳失敗時のフォールバック: 元タイトル + 言語サフィックス
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			$error_message = is_wp_error( $title_translation ) ? $title_translation->get_error_message() : '不明なエラー';
-			error_log( 'andW AI Translate - タイトル翻訳失敗、フォールバック使用: ' . $error_message );
-		}
+		// Debug logging removed
 
 		$title = $original_post->post_title;
 		$language_suffix = $this->get_language_suffix( $language );
