@@ -82,6 +82,7 @@ class ANDW_AI_Translate {
 			'class-admin-settings.php',   // 設定画面
 			'class-meta-box.php',        // 編集画面メタボックス
 			'class-block-parser.php',    // ブロック構造解析
+			'class-block-sidebar.php',   // Gutenbergブロックサイドバー
 			'class-page-generator.php',  // 言語別ページ生成
 			'class-image-meta.php',      // 画像言語別メタ
 			'class-expiry-manager.php',  // 期限管理
@@ -114,6 +115,11 @@ class ANDW_AI_Translate {
 			// 画像メタボックスの初期化
 			if ( class_exists( 'ANDW_AI_Translate_Image_Meta' ) ) {
 				new ANDW_AI_Translate_Image_Meta();
+			}
+
+			// ブロックサイドバーの初期化
+			if ( class_exists( 'ANDW_AI_Translate_Block_Sidebar' ) ) {
+				new ANDW_AI_Translate_Block_Sidebar();
 			}
 
 			add_action( 'admin_init', array( $this, 'admin_init' ) );

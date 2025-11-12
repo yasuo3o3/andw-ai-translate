@@ -39,7 +39,6 @@ class ANDW_AI_Translate_Meta_Box {
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_box' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_ajax_andw_ai_translate_post', array( $this, 'ajax_translate_post' ) );
-		add_action( 'wp_ajax_andw_ai_translate_block', array( $this, 'ajax_translate_block' ) );
 		add_action( 'wp_ajax_andw_ai_translate_ab_compare', array( $this, 'ajax_ab_compare' ) );
 		add_action( 'wp_ajax_andw_ai_translate_approve', array( $this, 'ajax_approve_translation' ) );
 	}
@@ -249,15 +248,6 @@ class ANDW_AI_Translate_Meta_Box {
 				</div>
 			</div>
 
-			<!-- ブロック単位翻訳エリア -->
-			<div id="andw-block-translation">
-				<h4><?php esc_html_e( 'ブロック単位翻訳', 'andw-ai-translate' ); ?></h4>
-				<p><?php esc_html_e( 'エディタでブロックを選択してから翻訳ボタンを押してください', 'andw-ai-translate' ); ?></p>
-
-				<button type="button" id="andw-translate-selected-block" class="button button-secondary">
-					<?php esc_html_e( '選択ブロックを翻訳', 'andw-ai-translate' ); ?>
-				</button>
-			</div>
 
 			<!-- 進行状況表示 -->
 			<div id="andw-progress" style="display: none;">
@@ -312,29 +302,6 @@ class ANDW_AI_Translate_Meta_Box {
 		) );
 	}
 
-	/**
-	 * AJAX: ブロック単位翻訳
-	 */
-	public function ajax_translate_block() {
-		// nonce と権限チェック
-		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'andw_ai_translate_meta_box' ) ||
-			! current_user_can( 'edit_posts' ) ) {
-			wp_die( esc_html__( '権限がありません', 'andw-ai-translate' ) );
-		}
-
-		$block_data = json_decode( stripslashes( $_POST['block_data'] ), true );
-		$target_language = sanitize_text_field( wp_unslash( $_POST['target_language'] ) );
-		$provider = sanitize_text_field( wp_unslash( $_POST['provider'] ) );
-
-		// ブロック翻訳の実行
-		$result = $this->block_parser->translate_block( $block_data, $target_language, $provider );
-
-		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( $result->get_error_message() );
-		}
-
-		wp_send_json_success( $result );
-	}
 
 	/**
 	 * AJAX: A/B比較

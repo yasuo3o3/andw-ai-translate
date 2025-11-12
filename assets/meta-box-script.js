@@ -18,8 +18,6 @@
             // A/B比較
             $('#andw-ab-compare').on('click', this.runAbCompare.bind(this));
 
-            // ブロック単位翻訳
-            $('#andw-translate-selected-block').on('click', this.translateSelectedBlock.bind(this));
 
             // 承認・却下
             $('#andw-approve-translation').on('click', this.approveTranslation.bind(this));
@@ -132,49 +130,6 @@
             });
         },
 
-        translateSelectedBlock: function() {
-            // Gutenbergエディタからブロックデータを取得
-            var selectedBlock = this.getSelectedBlock();
-            if (!selectedBlock) {
-                this.showError('ブロックが選択されていません');
-                return;
-            }
-
-            if (!this.validateInputs()) {
-                return;
-            }
-
-            var targetLanguage = $('#andw-target-language').val();
-            var provider = $('#andw-provider').val();
-
-            this.showProgress('ブロック翻訳中...', 0);
-
-            $.ajax({
-                url: andwTranslate.ajaxUrl,
-                type: 'POST',
-                data: {
-                    action: 'andw_ai_translate_block',
-                    nonce: andwTranslate.nonce,
-                    block_data: JSON.stringify(selectedBlock),
-                    target_language: targetLanguage,
-                    provider: provider
-                },
-                success: function(response) {
-                    if (response.success) {
-                        andwTranslateMeta.updateBlockInEditor(response.data.translated_block);
-                        andwTranslateMeta.hideProgress();
-                        andwTranslateMeta.showSuccess('ブロックが翻訳されました');
-                    } else {
-                        andwTranslateMeta.showError(response.data || andwTranslate.strings.error);
-                        andwTranslateMeta.hideProgress();
-                    }
-                },
-                error: function() {
-                    andwTranslateMeta.showError(andwTranslate.strings.error);
-                    andwTranslateMeta.hideProgress();
-                }
-            });
-        },
 
         approveTranslation: function() {
             if (!confirm(andwTranslate.strings.confirmApprove)) {
@@ -276,27 +231,6 @@
             return $('<div>').text(content).html().replace(/\n/g, '<br>');
         },
 
-        getSelectedBlock: function() {
-            // Gutenbergエディタから選択中のブロックを取得
-            // この実装はWordPressのバージョンにより異なる可能性があります
-            if (window.wp && window.wp.data) {
-                var selectedBlockId = wp.data.select('core/block-editor').getSelectedBlockId();
-                if (selectedBlockId) {
-                    return wp.data.select('core/block-editor').getBlock(selectedBlockId);
-                }
-            }
-            return null;
-        },
-
-        updateBlockInEditor: function(translatedBlock) {
-            // Gutenbergエディタのブロックを更新
-            if (window.wp && window.wp.data && translatedBlock) {
-                var selectedBlockId = wp.data.select('core/block-editor').getSelectedBlockId();
-                if (selectedBlockId) {
-                    wp.data.dispatch('core/block-editor').updateBlock(selectedBlockId, translatedBlock);
-                }
-            }
-        },
 
         validateInputs: function() {
             var targetLanguage = $('#andw-target-language').val();
