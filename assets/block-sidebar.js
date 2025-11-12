@@ -8,8 +8,46 @@
     // デバッグログ: スクリプト読み込み
     console.log('andW AI Translate - ブロックサイドバースクリプト読み込み');
 
+    // WordPress APIの存在チェック
+    if (!window.wp) {
+        console.error('andW AI Translate - WordPress APIが利用できません');
+        return;
+    }
+
+    if (!window.wp.plugins) {
+        console.error('andW AI Translate - wp.pluginsが利用できません');
+        return;
+    }
+
+    if (!window.wp.editPost && !window.wp.editor) {
+        console.error('andW AI Translate - wp.editPostまたはwp.editorが利用できません');
+        return;
+    }
+
+    console.log('andW AI Translate - WordPress API確認完了');
+
     const { registerPlugin } = wp.plugins;
-    const { PluginSidebar, PluginSidebarMoreMenuItem } = wp.editor || wp.editPost;
+
+    // PluginSidebar のインポートを安全にチェック
+    let PluginSidebar, PluginSidebarMoreMenuItem;
+
+    if (wp.editPost) {
+        PluginSidebar = wp.editPost.PluginSidebar;
+        PluginSidebarMoreMenuItem = wp.editPost.PluginSidebarMoreMenuItem;
+        console.log('andW AI Translate - wp.editPostからコンポーネントを取得');
+    } else if (wp.editor) {
+        PluginSidebar = wp.editor.PluginSidebar;
+        PluginSidebarMoreMenuItem = wp.editor.PluginSidebarMoreMenuItem;
+        console.log('andW AI Translate - wp.editorからコンポーネントを取得');
+    } else {
+        console.error('andW AI Translate - PluginSidebarコンポーネントが取得できません');
+        return;
+    }
+
+    if (!PluginSidebar || !PluginSidebarMoreMenuItem) {
+        console.error('andW AI Translate - 必要なコンポーネントが取得できません', { PluginSidebar, PluginSidebarMoreMenuItem });
+        return;
+    }
     const { PanelBody, Button, SelectControl, Notice } = wp.components;
     const { useState } = wp.element;
     const { useSelect, useDispatch } = wp.data;
@@ -209,12 +247,36 @@
         );
     }
 
-    // プラグインとして登録
+    // シンプルなテスト用プラグイン登録
     console.log('andW AI Translate - プラグインサイドバーを登録');
-    registerPlugin('andw-ai-translate-sidebar', {
-        render: AndwTranslateSidebarPlugin,
-        icon: 'translation',
-    });
+
+    const TestSidebarPlugin = function() {
+        console.log('andW AI Translate - TestSidebarPlugin render 呼び出し');
+
+        return wp.element.createElement(
+            wp.element.Fragment,
+            {},
+            wp.element.createElement(PluginSidebarMoreMenuItem, {
+                target: "andw-ai-translate-sidebar",
+                icon: "translation"
+            }, "AI翻訳"),
+            wp.element.createElement(PluginSidebar, {
+                name: "andw-ai-translate-sidebar",
+                title: "AI翻訳",
+                icon: "translation"
+            }, wp.element.createElement('p', {}, 'テスト用AI翻訳サイドバー'))
+        );
+    };
+
+    try {
+        registerPlugin('andw-ai-translate-sidebar', {
+            render: TestSidebarPlugin,
+            icon: 'translation',
+        });
+        console.log('andW AI Translate - プラグイン登録成功');
+    } catch (error) {
+        console.error('andW AI Translate - プラグイン登録失敗:', error);
+    }
 
     // 登録確認ログ
     setTimeout(() => {

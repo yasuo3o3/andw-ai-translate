@@ -82,9 +82,17 @@ class ANDW_AI_Translate_Block_Sidebar {
 			error_log( 'andW AI Translate - ブロックサイドバー用スクリプトを読み込み' );
 		}
 
+		$script_path = ANDW_AI_TRANSLATE_PLUGIN_URL . 'assets/block-sidebar.js';
+		$script_version = ANDW_AI_TRANSLATE_VERSION;
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'andW AI Translate - スクリプトURL: ' . $script_path );
+			error_log( 'andW AI Translate - スクリプトバージョン: ' . $script_version );
+		}
+
 		wp_enqueue_script(
 			'andw-ai-translate-block-sidebar',
-			ANDW_AI_TRANSLATE_PLUGIN_URL . 'assets/block-sidebar.js',
+			$script_path,
 			array(
 				'wp-plugins',
 				'wp-editor',
@@ -95,9 +103,16 @@ class ANDW_AI_Translate_Block_Sidebar {
 				'wp-i18n',
 				'wp-api-fetch'
 			),
-			ANDW_AI_TRANSLATE_VERSION,
+			$script_version,
 			true
 		);
+
+		// スクリプトがenqueueされたかチェック
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			$enqueued = wp_script_is( 'andw-ai-translate-block-sidebar', 'enqueued' );
+			$registered = wp_script_is( 'andw-ai-translate-block-sidebar', 'registered' );
+			error_log( 'andW AI Translate - スクリプトenqueue状況 registered: ' . ( $registered ? 'true' : 'false' ) . ', enqueued: ' . ( $enqueued ? 'true' : 'false' ) );
+		}
 
 		// 翻訳エンジンから利用可能なプロバイダを取得
 		$translation_engine = new ANDW_AI_Translate_Translation_Engine();
