@@ -39,7 +39,6 @@ class ANDW_AI_Translate_Meta_Box {
 		add_action( 'add_meta_boxes', array( $this, 'add_meta_box' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_ajax_andw_ai_translate_post', array( $this, 'ajax_translate_post' ) );
-		add_action( 'wp_ajax_andw_ai_translate_block', array( $this, 'ajax_translate_block' ) );
 		add_action( 'wp_ajax_andw_ai_translate_ab_compare', array( $this, 'ajax_ab_compare' ) );
 		add_action( 'wp_ajax_andw_ai_translate_approve', array( $this, 'ajax_approve_translation' ) );
 	}
@@ -388,90 +387,4 @@ class ANDW_AI_Translate_Meta_Box {
 		) );
 	}
 
-	/**
-	 * ブロック翻訳のAJAXハンドラー
-	 */
-	public function ajax_translate_block() {
-		// デバッグログ: メソッド開始
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - ajax_translate_block開始' );
-			error_log( 'andW AI Translate - POSTデータ: ' . print_r( $_POST, true ) );
-		}
-
-		// nonce と権限チェック
-		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'andw_ai_translate_meta_box' ) ||
-			! current_user_can( 'edit_posts' ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - nonce検証または権限チェック失敗' );
-			}
-			wp_send_json_error( __( '権限がありません', 'andw-ai-translate' ) );
-			return;
-		}
-
-		$block_data = $_POST['block_data'] ?? '';
-		$target_language = sanitize_text_field( wp_unslash( $_POST['target_language'] ?? 'en' ) );
-		$provider = sanitize_text_field( wp_unslash( $_POST['provider'] ?? 'openai' ) );
-
-		if ( empty( $block_data ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - ブロックデータが空' );
-			}
-			wp_send_json_error( __( 'ブロックデータが送信されていません', 'andw-ai-translate' ) );
-			return;
-		}
-
-		// JSONデコード
-		$block = json_decode( wp_unslash( $block_data ), true );
-		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - JSONエラー: ' . json_last_error_msg() );
-			}
-			wp_send_json_error( __( 'ブロックデータの解析に失敗しました: ', 'andw-ai-translate' ) . json_last_error_msg() );
-			return;
-		}
-
-		// デバッグログ
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - ブロック翻訳開始: ' . print_r( array(
-				'block_name' => $block['name'] ?? 'unknown',
-				'target_language' => $target_language,
-				'provider' => $provider,
-				'block_data_length' => strlen( $block_data )
-			), true ) );
-		}
-
-		// タイムアウト設定
-		set_time_limit( 300 ); // 5分
-
-		try {
-			// 翻訳エンジンの利用可能性チェック
-			if ( ! $this->expiry_manager->is_feature_available() ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate - 翻訳機能が利用不可' );
-				}
-				wp_send_json_error( __( '翻訳機能は現在利用できません', 'andw-ai-translate' ) );
-				return;
-			}
-
-			// ブロック翻訳を実行
-			$translated_block = $this->block_parser->translate_block( $block, $target_language, $provider );
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - ブロック翻訳成功' );
-			}
-
-			wp_send_json_success( array(
-				'translated_block' => $translated_block,
-				'message' => __( 'ブロックの翻訳が完了しました', 'andw-ai-translate' )
-			) );
-
-		} catch ( Exception $e ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - ブロック翻訳エラー: ' . $e->getMessage() );
-				error_log( 'andW AI Translate - エラースタックトレース: ' . $e->getTraceAsString() );
-			}
-
-			wp_send_json_error( __( '翻訳処理でエラーが発生しました: ', 'andw-ai-translate' ) . $e->getMessage() );
-		}
-	}
 }

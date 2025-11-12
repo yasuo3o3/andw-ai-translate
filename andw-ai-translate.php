@@ -82,7 +82,6 @@ class ANDW_AI_Translate {
 			'class-admin-settings.php',   // 設定画面
 			'class-meta-box.php',        // 編集画面メタボックス
 			'class-block-parser.php',    // ブロック構造解析
-			'class-block-sidebar.php',   // Gutenbergブロックサイドバー
 			'class-page-generator.php',  // 言語別ページ生成
 			'class-image-meta.php',      // 画像言語別メタ
 			'class-expiry-manager.php',  // 期限管理
@@ -117,20 +116,6 @@ class ANDW_AI_Translate {
 				new ANDW_AI_Translate_Image_Meta();
 			}
 
-			// ブロックサイドバーの初期化
-			if ( class_exists( 'ANDW_AI_Translate_Block_Sidebar' ) ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate - ブロックサイドバークラス存在確認成功' );
-				}
-				new ANDW_AI_Translate_Block_Sidebar();
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate - ブロックサイドバーインスタンス作成完了' );
-				}
-			} else {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate - ブロックサイドバークラスが見つかりません' );
-				}
-			}
 
 			add_action( 'admin_init', array( $this, 'admin_init' ) );
 			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
