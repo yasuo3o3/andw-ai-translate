@@ -258,9 +258,6 @@ class ANDW_AI_Translate_Translation_Engine {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - Claude API接続エラー: ' . $response->get_error_message() );
-			}
 			return new WP_Error( 'api_error', __( 'Claude APIへの接続に失敗しました', 'andw-ai-translate' ) );
 		}
 
@@ -268,33 +265,20 @@ class ANDW_AI_Translate_Translation_Engine {
 		$response_body = wp_remote_retrieve_body( $response );
 		$data = json_decode( $response_body, true );
 
-		// デバッグログ: API応答
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - Claude API応答ステータス: ' . $status_code );
-			error_log( 'andW AI Translate - Claude API応答ボディ: ' . $response_body );
-		}
+		// Debug logging removed
 
 		if ( $status_code !== 200 ) {
 			$error_message = isset( $data['error']['message'] ) ? $data['error']['message'] : __( 'Claude API エラーが発生しました', 'andw-ai-translate' );
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - Claude APIエラー: ' . $error_message );
-			}
 			return new WP_Error( 'api_error', $error_message );
 		}
 
 		if ( ! isset( $data['content'][0]['text'] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - Claude API無効応答: ' . print_r( $data, true ) );
-			}
 			return new WP_Error( 'invalid_response', __( 'Claude APIから無効な応答を受信しました', 'andw-ai-translate' ) );
 		}
 
 		$translated_text = trim( $data['content'][0]['text'] );
 
-		// デバッグログ: 翻訳結果
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - Claude 翻訳結果: ' . $translated_text );
-		}
+		// Debug logging removed
 
 		return $translated_text;
 	}
