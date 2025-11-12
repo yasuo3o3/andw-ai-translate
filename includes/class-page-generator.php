@@ -57,7 +57,7 @@ class ANDW_AI_Translate_Page_Generator {
 		// 新しい言語別ページのデータを準備
 		$translated_post_data = array(
 			'post_title'    => $this->get_translated_title( $original_post, $language, $translation_data ),
-			'post_content'  => $translation_data['translated_content'],
+			'post_content'  => $this->get_translated_content( $translation_data ),
 			'post_status'   => 'publish',
 			'post_type'     => $original_post->post_type,
 			'post_author'   => $original_post->post_author,
@@ -97,8 +97,13 @@ class ANDW_AI_Translate_Page_Generator {
 	private function update_translated_page( $translated_post_id, $translation_data ) {
 		$update_data = array(
 			'ID'           => $translated_post_id,
-			'post_content' => $translation_data['translated_content'],
+			'post_content' => $this->get_translated_content( $translation_data ),
 		);
+
+		// デバッグログ: 更新データの確認
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'andW AI Translate - ページ更新データ: 投稿ID ' . $translated_post_id . ', 本文長: ' . mb_strlen( $update_data['post_content'] ) . '文字' );
+		}
 
 		$result = wp_update_post( $update_data );
 
@@ -111,6 +116,50 @@ class ANDW_AI_Translate_Page_Generator {
 		update_post_meta( $translated_post_id, '_andw_ai_translate_updated', current_time( 'timestamp' ) );
 
 		return $translated_post_id;
+	}
+
+	/**
+	 * 翻訳されたコンテンツを安全に取得
+	 */
+	private function get_translated_content( $translation_data ) {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'andW AI Translate - データ構造チェック: ' . print_r( array_keys( $translation_data ), true ) );
+		}
+
+		// 承認データ構造からの取得 (最優先)
+		if ( isset( $translation_data['translation_result']['translated_content'] ) ) {
+			$content = $translation_data['translation_result']['translated_content'];
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'andW AI Translate - 承認データから本文取得成功: ' . mb_strlen( $content ) . '文字' );
+			}
+			return $content;
+		}
+
+		// 直接データ構造からの取得 (フォールバック1)
+		if ( isset( $translation_data['translated_content'] ) ) {
+			$content = $translation_data['translated_content'];
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'andW AI Translate - 直接データから本文取得成功: ' . mb_strlen( $content ) . '文字' );
+			}
+			return $content;
+		}
+
+		// A/B比較データ構造からの取得 (フォールバック2)
+		if ( isset( $translation_data['translation']['translated_content'] ) ) {
+			$content = $translation_data['translation']['translated_content'];
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'andW AI Translate - A/B比較データから本文取得成功: ' . mb_strlen( $content ) . '文字' );
+			}
+			return $content;
+		}
+
+		// データ取得失敗時のログ出力
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'andW AI Translate - 本文データ取得失敗、データ構造: ' . print_r( $translation_data, true ) );
+		}
+
+		// 最終フォールバック: 空文字
+		return '';
 	}
 
 	/**
