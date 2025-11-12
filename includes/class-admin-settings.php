@@ -132,23 +132,13 @@ class ANDW_AI_Translate_Admin_Settings {
 		$is_general_form = isset( $_POST['default_provider'] ) || isset( $_POST['target_languages'] ) || isset( $_POST['expiry_preset'] ) || isset( $_POST['limit_daily'] ) || isset( $_POST['limit_monthly'] );
 		$is_api_form = isset( $_POST['openai_api_key'] ) || isset( $_POST['claude_api_key'] );
 
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate: フォーム種類判定 - 一般設定: ' . ( $is_general_form ? 'Yes' : 'No' ) . ', APIキー: ' . ( $is_api_form ? 'Yes' : 'No' ) );
-		}
-
 		// 設定保存の処理（従来のボタンチェック + 自動判定）
 		if ( isset( $_POST['save_settings'] ) || $is_general_form ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: 一般設定保存を実行' );
-			}
 			$this->save_general_settings();
 		}
 
 		// APIキー保存の処理（従来のボタンチェック + 自動判定）
 		if ( isset( $_POST['save_api_keys'] ) || $is_api_form ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: APIキー保存を実行' );
-			}
 			$this->save_api_keys();
 		}
 
