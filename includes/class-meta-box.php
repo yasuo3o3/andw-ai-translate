@@ -415,11 +415,20 @@ class ANDW_AI_Translate_Meta_Box {
 		}
 
 		// 言語別ページの生成
+		$translated_page_id = null;
 		if ( class_exists( 'ANDW_AI_Translate_Page_Generator' ) ) {
 			$page_generator = new ANDW_AI_Translate_Page_Generator();
 			$result = $page_generator->create_translated_page( $post_id, $target_language, $pending_data );
 
-			// Debug logging removed
+			if ( is_wp_error( $result ) ) {
+				wp_send_json_error( __( 'ページ生成に失敗しました: ', 'andw-ai-translate' ) . $result->get_error_message() );
+			}
+			$translated_page_id = $result;
+
+			// ページ生成結果をログに記録（デバッグ時のみ）
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'andW AI Translate - ページ生成成功: 投稿ID ' . $translated_page_id );
+			}
 		}
 
 		// 承認済みデータとして保存
@@ -428,6 +437,7 @@ class ANDW_AI_Translate_Meta_Box {
 
 		wp_send_json_success( array(
 			'message' => __( '翻訳を承認しました', 'andw-ai-translate' ),
+			'translated_page_id' => $translated_page_id,
 		) );
 	}
 
