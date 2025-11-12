@@ -344,14 +344,21 @@ class ANDW_AI_Translate_Meta_Box {
 	 * AJAX: A/B比較
 	 */
 	public function ajax_ab_compare() {
+		// 必要なPOSTデータの検証
+		if ( ! isset( $_POST['nonce'], $_POST['post_id'], $_POST['target_language'] ) ) {
+			wp_send_json_error( __( '無効なリクエストです', 'andw-ai-translate' ) );
+		}
+
+		$request = wp_unslash( $_POST );
+
 		// nonce と権限チェック
-		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'andw_ai_translate_meta_box' ) ||
+		if ( ! wp_verify_nonce( sanitize_text_field( $request['nonce'] ), 'andw_ai_translate_meta_box' ) ||
 			! current_user_can( 'edit_posts' ) ) {
 			wp_die( esc_html__( '権限がありません', 'andw-ai-translate' ) );
 		}
 
-		$post_id = (int) $_POST['post_id'];
-		$target_language = sanitize_text_field( wp_unslash( $_POST['target_language'] ) );
+		$post_id = absint( $request['post_id'] );
+		$target_language = sanitize_text_field( $request['target_language'] );
 
 		// 利用可能なプロバイダの取得
 		$providers = $this->translation_engine->get_available_providers();
