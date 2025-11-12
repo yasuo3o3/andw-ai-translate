@@ -61,9 +61,6 @@ class ANDW_AI_Translate {
 		}
 		*/
 
-		// 翻訳ファイルの読み込み（WP 4.6+では自動だが明示的に記載）
-		load_plugin_textdomain( 'andw-ai-translate', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-
 		// 機能ファイルの読み込み
 		$this->load_includes();
 
