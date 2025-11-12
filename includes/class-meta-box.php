@@ -243,9 +243,9 @@ class ANDW_AI_Translate_Meta_Box {
 						<div class="original-text-info">
 							<small class="description">
 								<?php
-								$content_length = mb_strlen( wp_strip_all_tags( $post->post_content ), 'UTF-8' );
-								/* translators: %d = 投稿本文の文字数 */
-								printf( esc_html__( '文字数: %d文字', 'andw-ai-translate' ), $content_length );
+								$content_length = absint( mb_strlen( wp_strip_all_tags( $post->post_content ), 'UTF-8' ) );
+								/* translators: %s = 投稿本文の文字数（国際化対応） */
+								printf( esc_html__( '文字数: %s文字', 'andw-ai-translate' ), esc_html( number_format_i18n( $content_length ) ) );
 								?>
 							</small>
 						</div>
