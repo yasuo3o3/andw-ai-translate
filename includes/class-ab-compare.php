@@ -299,6 +299,11 @@ class ANDW_AI_Translate_AB_Compare {
 	 * AJAX: 詳細A/B比較
 	 */
 	public function ajax_ab_compare_detailed() {
+		// POSTデータ存在チェック
+		if ( ! isset( $_POST['nonce'], $_POST['post_id'], $_POST['target_language'] ) ) {
+			wp_die( esc_html__( '必須パラメータが不足しています', 'andw-ai-translate' ) );
+		}
+
 		// nonce と権限チェック
 		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'andw_ai_translate_meta_box' ) ||
 			! current_user_can( 'edit_posts' ) ) {
@@ -321,6 +326,11 @@ class ANDW_AI_Translate_AB_Compare {
 	 * AJAX: A/B比較結果の選択
 	 */
 	public function ajax_select_ab_result() {
+		// POSTデータ存在チェック
+		if ( ! isset( $_POST['nonce'], $_POST['comparison_id'], $_POST['selected_provider'] ) ) {
+			wp_die( esc_html__( '必須パラメータが不足しています', 'andw-ai-translate' ) );
+		}
+
 		// nonce と権限チェック
 		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'andw_ai_translate_meta_box' ) ||
 			! current_user_can( 'edit_posts' ) ) {
