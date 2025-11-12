@@ -190,9 +190,6 @@ class ANDW_AI_Translate_Admin_Settings {
 			if ( in_array( $preset, array( 30, 60 ), true ) ) {
 				update_option( 'andw_ai_translate_expiry_preset', $preset );
 				$saved_count++;
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate: 期限プリセットを保存 - ' . $preset );
-				}
 			}
 		}
 
@@ -201,25 +198,16 @@ class ANDW_AI_Translate_Admin_Settings {
 			$limit = (int) $_POST['limit_daily'];
 			update_option( 'andw_ai_translate_limit_daily', max( 0, $limit ) );
 			$saved_count++;
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: 日次制限を保存 - ' . $limit );
-			}
 		}
 
 		if ( isset( $_POST['limit_monthly'] ) ) {
 			$limit = (int) $_POST['limit_monthly'];
 			update_option( 'andw_ai_translate_limit_monthly', max( 0, $limit ) );
 			$saved_count++;
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: 月次制限を保存 - ' . $limit );
-			}
 		}
 
 		if ( $saved_count > 0 ) {
 			add_settings_error( 'andw_ai_translate', 'settings_saved', __( '設定を保存しました', 'andw-ai-translate' ), 'updated' );
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: 設定保存完了 - ' . $saved_count . '項目' );
-			}
 		} else {
 			add_settings_error( 'andw_ai_translate', 'no_changes', __( '保存する変更がありませんでした', 'andw-ai-translate' ), 'notice-warning' );
 		}
