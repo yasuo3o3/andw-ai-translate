@@ -42,16 +42,16 @@ foreach ( $options_to_delete as $option ) {
 }
 
 // Transients の削除（andw_ai_translate プレフィックスのみ）
-global $wpdb;
-
-// Transients の削除（プレフィックス検索）
-$wpdb->query(
-	$wpdb->prepare(
-		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-		'_transient_andw_ai_translate_%',
-		'_transient_timeout_andw_ai_translate_%'
-	)
+$transient_keys = array_filter(
+	get_option( '', array() ) ? array_keys( wp_load_alloptions() ) : array(),
+	function( $key ) { return strpos( $key, '_transient_andw_ai_translate_' ) === 0; }
 );
+foreach ( $transient_keys as $key ) {
+	$transient_name = str_replace( '_transient_', '', $key );
+	if ( strpos( $transient_name, 'timeout_' ) !== 0 ) {
+		delete_transient( $transient_name );
+	}
+}
 
 // サイト全体のキャッシュから当プラグイン関連のみ削除
 $cache_keys_to_delete = array(
