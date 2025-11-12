@@ -283,23 +283,31 @@ class ANDW_AI_Translate_Image_Meta {
 		}
 
 		// 言語別メタデータの保存
+		// —— 言語別メタデータの保存（安全版）——
 		if ( isset( $_POST['andw_image_meta'] ) && is_array( $_POST['andw_image_meta'] ) ) {
-			$image_meta = wp_unslash( $_POST['andw_image_meta'] );
+			// 配列全体を再帰サニタイズ
+			$image_meta = map_deep( wp_unslash( $_POST['andw_image_meta'] ), 'sanitize_text_field' );
 			$language_meta = array();
 
 			foreach ( $image_meta as $lang_code_raw => $meta_data ) {
-				$lang_code = sanitize_text_field( $lang_code_raw );
+				$lang_code = sanitize_key( $lang_code_raw );
 
 				if ( is_array( $meta_data ) ) {
-					$language_meta[ $lang_code ] = array(
-						'alt' => isset( $meta_data['alt'] ) ? sanitize_text_field( wp_unslash( $meta_data['alt'] ) ) : '',
-						'caption' => isset( $meta_data['caption'] ) ? sanitize_text_field( wp_unslash( $meta_data['caption'] ) ) : '',
-					);
+					$alt     = isset( $meta_data['alt'] ) ? sanitize_text_field( $meta_data['alt'] ) : '';
+					$caption = isset( $meta_data['caption'] ) ? sanitize_textarea_field( $meta_data['caption'] ) : '';
+
+					if ( '' !== $alt || '' !== $caption ) {
+						$language_meta[ $lang_code ] = array(
+							'alt'     => $alt,
+							'caption' => $caption,
+						);
+					}
 				}
 			}
 
 			update_post_meta( $attachment_id, '_andw_ai_translate_image_meta', $language_meta );
 		}
+
 	}
 
 	/**
