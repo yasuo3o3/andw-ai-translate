@@ -78,12 +78,14 @@ foreach ( $users as $user_id ) {
 }
 
 // Post Meta の削除（翻訳関連のメタデータ）
-$wpdb->query(
-	$wpdb->prepare(
-		"DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE %s",
-		'andw_ai_translate_%'
-	)
+$meta_keys_to_delete = array(
+	'_andw_ai_translate_approved_ja', '_andw_ai_translate_approved_en',
+	'_andw_ai_translate_pending', '_andw_ai_translate_original_content',
+	'_andw_ai_translate_version'
 );
+foreach ( $meta_keys_to_delete as $meta_key ) {
+	delete_post_meta_by_key( $meta_key );
+}
 
 // 注意：wp_cache_flush() は使用しない（WORDPRESS.md の指示に従う）
 // サイト全体のキャッシュをクリアするような処理は実行しない
