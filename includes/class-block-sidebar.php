@@ -30,9 +30,17 @@ class ANDW_AI_Translate_Block_Sidebar {
 		$this->block_parser = new ANDW_AI_Translate_Block_Parser();
 		$this->expiry_manager = new ANDW_AI_Translate_Expiry_Manager();
 
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'andW AI Translate - ブロックサイドバークラス初期化' );
+		}
+
 		add_action( 'init', array( $this, 'register_block_sidebar' ) );
 		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_block_editor_assets' ) );
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'andW AI Translate - ブロックサイドバーフック登録完了' );
+		}
 	}
 
 	/**
@@ -142,7 +150,11 @@ class ANDW_AI_Translate_Block_Sidebar {
 	 * REST APIルートの登録
 	 */
 	public function register_rest_routes() {
-		register_rest_route(
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'andW AI Translate - REST APIルートを登録中' );
+		}
+
+		$result = register_rest_route(
 			'andw-ai-translate/v1',
 			'/block',
 			array(
@@ -165,6 +177,14 @@ class ANDW_AI_Translate_Block_Sidebar {
 				),
 			)
 		);
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			if ( $result ) {
+				error_log( 'andW AI Translate - REST APIルート登録成功: /andw-ai-translate/v1/block' );
+			} else {
+				error_log( 'andW AI Translate - REST APIルート登録失敗' );
+			}
+		}
 	}
 
 	/**
@@ -174,9 +194,17 @@ class ANDW_AI_Translate_Block_Sidebar {
 	 * @return WP_REST_Response レスポンス
 	 */
 	public function rest_translate_block( $request ) {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'andW AI Translate - REST APIエンドポイント呼び出し: ' . $request->get_route() );
+			error_log( 'andW AI Translate - リクエストメソッド: ' . $request->get_method() );
+		}
+
 		// nonce チェック
 		$nonce = $request->get_header( 'X-WP-Nonce' );
 		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'andW AI Translate - REST API nonce検証失敗' );
+			}
 			return new WP_Error( 'invalid_nonce', __( '無効なnonceです', 'andw-ai-translate' ), array( 'status' => 403 ) );
 		}
 
