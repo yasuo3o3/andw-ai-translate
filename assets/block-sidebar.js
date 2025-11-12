@@ -72,17 +72,60 @@
         const [provider, setProvider] = useState('openai');
         const [notice, setNotice] = useState(null);
 
-        // 選択中のブロックを取得
+        // 選択中のブロックを取得（エラーハンドリング付き）
         const selectedBlock = useSelect(function(select) {
-            const selectedBlockId = select('core/block-editor').getSelectedBlockId();
-            if (selectedBlockId) {
-                return select('core/block-editor').getBlock(selectedBlockId);
+            try {
+                const blockEditorSelect = select('core/block-editor');
+
+                // 利用可能なメソッドを確認
+                console.log('andW AI Translate - 利用可能なblock-editorメソッド:', Object.keys(blockEditorSelect));
+
+                // 複数の方法でブロック選択を試行
+                let selectedBlockId = null;
+                let selectedBlock = null;
+
+                // 方法1: getSelectedBlockId
+                if (typeof blockEditorSelect.getSelectedBlockId === 'function') {
+                    selectedBlockId = blockEditorSelect.getSelectedBlockId();
+                    console.log('andW AI Translate - getSelectedBlockId結果:', selectedBlockId);
+                }
+
+                // 方法2: getSelectedBlocks（複数選択対応）
+                if (!selectedBlockId && typeof blockEditorSelect.getSelectedBlocks === 'function') {
+                    const selectedBlocks = blockEditorSelect.getSelectedBlocks();
+                    if (selectedBlocks && selectedBlocks.length > 0) {
+                        selectedBlock = selectedBlocks[0];
+                        console.log('andW AI Translate - getSelectedBlocks結果:', selectedBlocks);
+                        return selectedBlock;
+                    }
+                }
+
+                // 方法3: getBlockSelectionStart
+                if (!selectedBlockId && typeof blockEditorSelect.getBlockSelectionStart === 'function') {
+                    selectedBlockId = blockEditorSelect.getBlockSelectionStart();
+                    console.log('andW AI Translate - getBlockSelectionStart結果:', selectedBlockId);
+                }
+
+                // ブロックIDからブロックオブジェクトを取得
+                if (selectedBlockId && typeof blockEditorSelect.getBlock === 'function') {
+                    selectedBlock = blockEditorSelect.getBlock(selectedBlockId);
+                    console.log('andW AI Translate - 取得したブロック:', selectedBlock);
+                    return selectedBlock;
+                }
+
+                return null;
+            } catch (error) {
+                console.error('andW AI Translate - ブロック選択取得エラー:', error);
+                return null;
             }
-            return null;
         }, []);
 
-        // ブロックエディタのディスパッチャー
-        const { updateBlockAttributes, replaceBlocks } = useDispatch('core/block-editor');
+        // ブロックエディタのディスパッチャー（エラーハンドリング付き）
+        const blockEditorDispatch = useDispatch('core/block-editor');
+
+        // ディスパッチメソッドの安全な取得
+        const updateBlockAttributes = blockEditorDispatch && blockEditorDispatch.updateBlockAttributes;
+        const replaceBlocks = blockEditorDispatch && blockEditorDispatch.replaceBlocks;
 
         // 翻訳実行
         const handleTranslate = function() {
@@ -119,15 +162,27 @@
                 if (response.success && response.data) {
                     const translatedBlock = response.data.translated_block;
 
-                    // ブロックを翻訳結果で更新
-                    replaceBlocks(selectedBlock.clientId, translatedBlock);
+                    // ブロックを翻訳結果で更新（安全チェック付き）
+                    if (replaceBlocks && selectedBlock.clientId) {
+                        replaceBlocks(selectedBlock.clientId, translatedBlock);
+                        console.log('andW AI Translate - ブロック更新完了');
+                    } else if (updateBlockAttributes && selectedBlock.clientId) {
+                        // replaceBlocksが使えない場合はupdateBlockAttributesを試行
+                        updateBlockAttributes(selectedBlock.clientId, translatedBlock.attributes || {});
+                        console.log('andW AI Translate - ブロック属性更新完了');
+                    } else {
+                        console.error('andW AI Translate - ブロック更新メソッドが利用できません');
+                        setNotice({
+                            status: 'error',
+                            content: __('ブロック更新に失敗しました', 'andw-ai-translate')
+                        });
+                        return;
+                    }
 
                     setNotice({
                         status: 'success',
                         content: __('ブロックが翻訳されました', 'andw-ai-translate')
                     });
-
-                    console.log('andW AI Translate - ブロック更新完了');
                 } else {
                     setNotice({
                         status: 'error',
