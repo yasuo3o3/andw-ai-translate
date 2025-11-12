@@ -95,13 +95,13 @@ class ANDW_AI_Translate_Block_Sidebar {
 			$script_path,
 			array(
 				'wp-plugins',
-				'wp-editor',
-				'wp-edit-post',
 				'wp-components',
 				'wp-element',
 				'wp-data',
 				'wp-i18n',
-				'wp-api-fetch'
+				'wp-api-fetch',
+				'wp-editor',
+				'wp-edit-post'
 			),
 			$script_version,
 			true

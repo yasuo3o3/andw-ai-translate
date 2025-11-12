@@ -19,8 +19,8 @@
         return;
     }
 
-    if (!window.wp.editPost && !window.wp.editor) {
-        console.error('andW AI Translate - wp.editPostまたはwp.editorが利用できません');
+    if (!window.wp.editor && !window.wp.editPost) {
+        console.error('andW AI Translate - wp.editorまたはwp.editPostが利用できません');
         return;
     }
 
@@ -28,19 +28,25 @@
 
     const { registerPlugin } = wp.plugins;
 
-    // PluginSidebar のインポートを安全にチェック
+    // PluginSidebar のインポートを安全にチェック（wp.editorを優先）
     let PluginSidebar, PluginSidebarMoreMenuItem;
 
-    if (wp.editPost) {
-        PluginSidebar = wp.editPost.PluginSidebar;
-        PluginSidebarMoreMenuItem = wp.editPost.PluginSidebarMoreMenuItem;
-        console.log('andW AI Translate - wp.editPostからコンポーネントを取得');
-    } else if (wp.editor) {
+    if (wp.editor && wp.editor.PluginSidebar) {
         PluginSidebar = wp.editor.PluginSidebar;
         PluginSidebarMoreMenuItem = wp.editor.PluginSidebarMoreMenuItem;
-        console.log('andW AI Translate - wp.editorからコンポーネントを取得');
+        console.log('andW AI Translate - wp.editorからコンポーネントを取得（推奨）');
+    } else if (wp.editPost && wp.editPost.PluginSidebar) {
+        PluginSidebar = wp.editPost.PluginSidebar;
+        PluginSidebarMoreMenuItem = wp.editPost.PluginSidebarMoreMenuItem;
+        console.log('andW AI Translate - wp.editPostからコンポーネントを取得（非推奨）');
     } else {
         console.error('andW AI Translate - PluginSidebarコンポーネントが取得できません');
+        console.log('andW AI Translate - 利用可能なAPI:', {
+            'wp.editor': !!wp.editor,
+            'wp.editPost': !!wp.editPost,
+            'wp.editor.PluginSidebar': !!(wp.editor && wp.editor.PluginSidebar),
+            'wp.editPost.PluginSidebar': !!(wp.editPost && wp.editPost.PluginSidebar)
+        });
         return;
     }
 
