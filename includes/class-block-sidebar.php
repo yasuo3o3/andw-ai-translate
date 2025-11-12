@@ -54,15 +54,32 @@ class ANDW_AI_Translate_Block_Sidebar {
 	 * ブロックエディタ用アセットの読み込み
 	 */
 	public function enqueue_block_editor_assets() {
+		// デバッグログ: メソッド呼び出し
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'andW AI Translate - enqueue_block_editor_assets 呼び出し' );
+		}
+
 		// 利用可能性チェック
 		if ( ! $this->expiry_manager->is_feature_available() ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'andW AI Translate - 機能が利用不可のためブロックサイドバーを無効化' );
+			}
 			return;
 		}
 
-		// 投稿・ページ編集画面でのみ読み込み
+		// Gutenbergエディタが有効な画面でのみ読み込み
 		$current_screen = get_current_screen();
-		if ( ! $current_screen || ! in_array( $current_screen->id, array( 'post', 'page' ), true ) ) {
+		if ( ! $current_screen || ! $current_screen->is_block_editor ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				$screen_id = $current_screen ? $current_screen->id : 'null';
+				$is_block_editor = $current_screen ? $current_screen->is_block_editor : false;
+				error_log( 'andW AI Translate - Gutenbergエディタではないためスキップ: ' . $screen_id . ', is_block_editor: ' . ( $is_block_editor ? 'true' : 'false' ) );
+			}
 			return;
+		}
+
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'andW AI Translate - ブロックサイドバー用スクリプトを読み込み' );
 		}
 
 		wp_enqueue_script(
@@ -70,6 +87,7 @@ class ANDW_AI_Translate_Block_Sidebar {
 			ANDW_AI_TRANSLATE_PLUGIN_URL . 'assets/block-sidebar.js',
 			array(
 				'wp-plugins',
+				'wp-editor',
 				'wp-edit-post',
 				'wp-components',
 				'wp-element',
