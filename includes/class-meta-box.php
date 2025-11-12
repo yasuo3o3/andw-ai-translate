@@ -237,7 +237,7 @@ class ANDW_AI_Translate_Meta_Box {
 					<div id="original-text-container" style="display: none;">
 						<h5><?php esc_html_e( '参考：日本語原文', 'andw-ai-translate' ); ?></h5>
 						<div class="original-content">
-							<?php echo wp_kses_post( $post->post_content ); ?>
+							<?php echo wp_kses_post( $this->process_content_for_original_display( $post->post_content ) ); ?>
 						</div>
 						<div class="original-text-info">
 							<small class="description">
@@ -413,6 +413,244 @@ class ANDW_AI_Translate_Meta_Box {
 		wp_send_json_success( array(
 			'message' => __( '翻訳を承認しました', 'andw-ai-translate' ),
 		) );
+	}
+
+	/**
+	 * 原文表示用のコンテンツ処理（画像をテキスト情報に置換）
+	 *
+	 * @param string $content 元のコンテンツ
+	 * @return string 処理済みコンテンツ
+	 */
+	private function process_content_for_original_display( $content ) {
+		// Gutenbergブロックの解析
+		if ( function_exists( 'parse_blocks' ) ) {
+			$blocks = parse_blocks( $content );
+			return $this->process_blocks_for_original_display( $blocks );
+		}
+
+		// 従来エディタの場合のフォールバック
+		return $this->process_classic_content_for_original_display( $content );
+	}
+
+	/**
+	 * ブロック形式のコンテンツ処理
+	 *
+	 * @param array $blocks ブロックの配列
+	 * @return string 処理済みコンテンツ
+	 */
+	private function process_blocks_for_original_display( $blocks ) {
+		$processed_content = '';
+
+		foreach ( $blocks as $block ) {
+			if ( empty( $block['blockName'] ) ) {
+				// 通常のテキストブロック
+				$processed_content .= $block['innerHTML'] ?? '';
+				continue;
+			}
+
+			switch ( $block['blockName'] ) {
+				case 'core/image':
+					$processed_content .= $this->process_image_block( $block );
+					break;
+
+				case 'core/gallery':
+					$processed_content .= $this->process_gallery_block( $block );
+					break;
+
+				case 'core/cover':
+					$processed_content .= $this->process_cover_block( $block );
+					break;
+
+				case 'core/media-text':
+					$processed_content .= $this->process_media_text_block( $block );
+					break;
+
+				default:
+					// その他のブロックは通常通り表示
+					$processed_content .= render_block( $block );
+					break;
+			}
+		}
+
+		return $processed_content;
+	}
+
+	/**
+	 * 画像ブロックの処理
+	 *
+	 * @param array $block 画像ブロック
+	 * @return string 処理済みHTML
+	 */
+	private function process_image_block( $block ) {
+		$attributes = $block['attrs'] ?? array();
+		$image_info = array();
+
+		// 画像ID
+		if ( isset( $attributes['id'] ) ) {
+			$attachment_id = (int) $attributes['id'];
+
+			// ALT属性
+			$alt_text = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+			if ( ! empty( $alt_text ) ) {
+				$image_info[] = 'ALT: ' . esc_html( $alt_text );
+			}
+
+			// キャプション
+			$attachment = get_post( $attachment_id );
+			if ( $attachment && ! empty( $attachment->post_excerpt ) ) {
+				$image_info[] = 'キャプション: ' . esc_html( $attachment->post_excerpt );
+			}
+
+			// ファイル名
+			$filename = basename( get_attached_file( $attachment_id ) );
+			if ( $filename ) {
+				$image_info[] = 'ファイル名: ' . esc_html( $filename );
+			}
+		}
+
+		// ブロックレベルのキャプション
+		if ( isset( $attributes['caption'] ) && ! empty( $attributes['caption'] ) ) {
+			$image_info[] = 'キャプション: ' . esc_html( wp_strip_all_tags( $attributes['caption'] ) );
+		}
+
+		// 情報がない場合のフォールバック
+		if ( empty( $image_info ) ) {
+			$image_info[] = '[画像]';
+		}
+
+		return '<div class="andw-image-placeholder">' .
+			   '<span class="andw-image-icon">🖼️</span>' .
+			   '<span class="andw-image-info">' . implode( ' | ', $image_info ) . '</span>' .
+			   '</div>';
+	}
+
+	/**
+	 * ギャラリーブロックの処理
+	 *
+	 * @param array $block ギャラリーブロック
+	 * @return string 処理済みHTML
+	 */
+	private function process_gallery_block( $block ) {
+		$attributes = $block['attrs'] ?? array();
+		$image_count = 0;
+		$gallery_info = array();
+
+		if ( isset( $attributes['ids'] ) && is_array( $attributes['ids'] ) ) {
+			$image_count = count( $attributes['ids'] );
+
+			foreach ( $attributes['ids'] as $attachment_id ) {
+				$alt_text = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+				if ( ! empty( $alt_text ) ) {
+					$gallery_info[] = esc_html( $alt_text );
+				}
+			}
+		}
+
+		$info_text = '[ギャラリー: ' . $image_count . '枚の画像]';
+		if ( ! empty( $gallery_info ) ) {
+			$info_text .= ' - ' . implode( ', ', $gallery_info );
+		}
+
+		return '<div class="andw-gallery-placeholder">' .
+			   '<span class="andw-gallery-icon">🖼️📁</span>' .
+			   '<span class="andw-gallery-info">' . $info_text . '</span>' .
+			   '</div>';
+	}
+
+	/**
+	 * カバーブロックの処理
+	 *
+	 * @param array $block カバーブロック
+	 * @return string 処理済みHTML
+	 */
+	private function process_cover_block( $block ) {
+		$attributes = $block['attrs'] ?? array();
+		$inner_html = $block['innerHTML'] ?? '';
+
+		// テキスト部分を抽出
+		$text_content = wp_strip_all_tags( $inner_html );
+
+		$info_text = '[カバー画像]';
+		if ( ! empty( $text_content ) ) {
+			$info_text .= ' - テキスト: ' . esc_html( trim( $text_content ) );
+		}
+
+		return '<div class="andw-cover-placeholder">' .
+			   '<span class="andw-cover-icon">🖼️📄</span>' .
+			   '<span class="andw-cover-info">' . $info_text . '</span>' .
+			   '</div>';
+	}
+
+	/**
+	 * メディア・テキストブロックの処理
+	 *
+	 * @param array $block メディア・テキストブロック
+	 * @return string 処理済みHTML
+	 */
+	private function process_media_text_block( $block ) {
+		$inner_html = $block['innerHTML'] ?? '';
+
+		// メディア部分を画像プレースホルダーに置換
+		$processed_html = preg_replace(
+			'/<figure[^>]*class="[^"]*wp-block-media-text__media[^"]*"[^>]*>.*?<\/figure>/s',
+			'<div class="andw-media-placeholder"><span class="andw-media-icon">🖼️</span><span class="andw-media-info">[メディア]</span></div>',
+			$inner_html
+		);
+
+		return $processed_html;
+	}
+
+	/**
+	 * 従来エディタ用のコンテンツ処理
+	 *
+	 * @param string $content 元のコンテンツ
+	 * @return string 処理済みコンテンツ
+	 */
+	private function process_classic_content_for_original_display( $content ) {
+		// img タグを画像情報に置換
+		$content = preg_replace_callback(
+			'/<img[^>]*>/i',
+			array( $this, 'replace_img_tag_with_info' ),
+			$content
+		);
+
+		return $content;
+	}
+
+	/**
+	 * imgタグを画像情報に置換するコールバック
+	 *
+	 * @param array $matches マッチした内容
+	 * @return string 置換後の文字列
+	 */
+	private function replace_img_tag_with_info( $matches ) {
+		$img_tag = $matches[0];
+		$image_info = array();
+
+		// alt属性を抽出
+		if ( preg_match('/alt=["\']([^"\']*)["\']/', $img_tag, $alt_matches ) ) {
+			$image_info[] = 'ALT: ' . esc_html( $alt_matches[1] );
+		}
+
+		// title属性を抽出
+		if ( preg_match('/title=["\']([^"\']*)["\']/', $img_tag, $title_matches ) ) {
+			$image_info[] = 'タイトル: ' . esc_html( $title_matches[1] );
+		}
+
+		// src属性からファイル名を抽出
+		if ( preg_match('/src=["\']([^"\']*)["\']/', $img_tag, $src_matches ) ) {
+			$filename = basename( $src_matches[1] );
+			$image_info[] = 'ファイル名: ' . esc_html( $filename );
+		}
+
+		if ( empty( $image_info ) ) {
+			$image_info[] = '[画像]';
+		}
+
+		return '<div class="andw-image-placeholder">' .
+			   '<span class="andw-image-icon">🖼️</span>' .
+			   '<span class="andw-image-info">' . implode( ' | ', $image_info ) . '</span>' .
+			   '</div>';
 	}
 
 }
