@@ -127,20 +127,11 @@ class ANDW_AI_Translate {
 	 * ステージング/開発環境の判定
 	 */
 	private function is_staging_or_development() {
-		// デバッグ情報の出力
 		$host = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : '';
-		$env_type = defined( 'WP_ENVIRONMENT_TYPE' ) ? WP_ENVIRONMENT_TYPE : 'unknown';
-
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate: 環境チェック - ホスト: ' . $host . ', 環境タイプ: ' . $env_type );
-		}
 
 		// 環境変数チェック
 		if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
 			$is_dev_env = in_array( WP_ENVIRONMENT_TYPE, array( 'development', 'staging' ), true );
-			if ( $is_dev_env && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: WP_ENVIRONMENT_TYPE により開発環境と判定' );
-			}
 			return $is_dev_env;
 		}
 
@@ -149,9 +140,6 @@ class ANDW_AI_Translate {
 
 		foreach ( $staging_patterns as $pattern ) {
 			if ( strpos( $host, $pattern ) !== false ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate: ホスト名パターン "' . $pattern . '" により開発環境と判定' );
-				}
 				return true;
 			}
 		}
