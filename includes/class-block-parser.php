@@ -51,15 +51,6 @@ class ANDW_AI_Translate_Block_Parser {
 			$title_result = $this->translation_engine->translate( $post->post_title, $target_language, $provider );
 			if ( ! is_wp_error( $title_result ) && isset( $title_result['translated_text'] ) ) {
 				$title_translation = $title_result['translated_text'];
-
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate - ブロックパーサー タイトル翻訳成功: ' . $title_translation );
-				}
-			} else {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					$error_msg = is_wp_error( $title_result ) ? $title_result->get_error_message() : '不明なエラー';
-					error_log( 'andW AI Translate - ブロックパーサー タイトル翻訳失敗: ' . $error_msg );
-				}
 			}
 		}
 
