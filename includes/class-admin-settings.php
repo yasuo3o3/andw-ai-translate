@@ -431,6 +431,7 @@ class ANDW_AI_Translate_Admin_Settings {
 								'fr' => __( 'フランス語 (Français)', 'andw-ai-translate' ),
 								'de' => __( 'ドイツ語 (Deutsch)', 'andw-ai-translate' ),
 								'es' => __( 'スペイン語 (Español)', 'andw-ai-translate' ),
+								'mn' => __( 'モンゴル語 (монгол хэл)', 'andw-ai-translate' ),
 							);
 							foreach ( $available_languages as $code => $label ) :
 								$checked = in_array( $code, $target_languages, true ) ? 'checked="checked"' : '';

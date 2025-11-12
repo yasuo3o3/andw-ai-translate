@@ -222,6 +222,7 @@ class ANDW_AI_Translate_Page_Generator {
 			'fr'    => ' (Français)',
 			'de'    => ' (Deutsch)',
 			'es'    => ' (Español)',
+			'mn'    => ' (монгол хэл)',
 		);
 
 		return isset( $suffixes[ $language ] ) ? $suffixes[ $language ] : ' (' . strtoupper( $language ) . ')';
@@ -519,6 +520,7 @@ class ANDW_AI_Translate_Page_Generator {
 			'fr' => 'Français',
 			'de' => 'Deutsch',
 			'es' => 'Español',
+			'mn' => 'монгол',
 		);
 
 		foreach ( $translations as $language => $translation_data ) {

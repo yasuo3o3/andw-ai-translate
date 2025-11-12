@@ -169,6 +169,7 @@ class ANDW_AI_Translate_Meta_Box {
 						<option value="fr"><?php esc_html_e( 'フランス語 (Français)', 'andw-ai-translate' ); ?></option>
 						<option value="de"><?php esc_html_e( 'ドイツ語 (Deutsch)', 'andw-ai-translate' ); ?></option>
 						<option value="es"><?php esc_html_e( 'スペイン語 (Español)', 'andw-ai-translate' ); ?></option>
+						<option value="mn"><?php esc_html_e( 'モンゴル語 (монгол хэл)', 'andw-ai-translate' ); ?></option>
 					</select>
 				</p>
 
