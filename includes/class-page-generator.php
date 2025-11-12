@@ -213,12 +213,23 @@ class ANDW_AI_Translate_Page_Generator {
 	}
 
 	/**
-	 * タクソノミーの複製
+	 * タクソノミーの複製（言語別カテゴリー対応）
 	 */
 	private function copy_taxonomies( $original_post_id, $translated_post_id ) {
 		$taxonomies = get_object_taxonomies( get_post_type( $original_post_id ) );
+		$language = get_post_meta( $translated_post_id, '_andw_ai_translate_language', true );
 
 		foreach ( $taxonomies as $taxonomy ) {
+			// カテゴリーの場合は言語別配置を試行
+			if ( $taxonomy === 'category' && $language ) {
+				$language_category_id = $this->get_language_category_id( $language );
+				if ( $language_category_id ) {
+					wp_set_post_terms( $translated_post_id, array( $language_category_id ), $taxonomy );
+					continue; // 言語カテゴリーに配置したので、元のカテゴリーはスキップ
+				}
+			}
+
+			// その他のタクソノミーまたは言語カテゴリーが見つからない場合は元の処理
 			$terms = wp_get_post_terms( $original_post_id, $taxonomy, array( 'fields' => 'ids' ) );
 			if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
 				wp_set_post_terms( $translated_post_id, $terms, $taxonomy );
@@ -504,5 +515,45 @@ class ANDW_AI_Translate_Page_Generator {
 		}
 
 		return $links;
+	}
+
+	/**
+	 * 言語コードに対応するカテゴリーIDを取得
+	 *
+	 * @param string $language_code 言語コード (e.g., 'en', 'zh-cn', 'zh-tw', 'ko')
+	 * @return int|false カテゴリーIDまたはfalse
+	 */
+	private function get_language_category_id( $language_code ) {
+		if ( empty( $language_code ) ) {
+			return false;
+		}
+
+		// 言語コードの正規化（zh → zh-cn に変換）
+		$normalized_language = $this->normalize_language_code( $language_code );
+
+		// スラッグでカテゴリーを検索
+		$category = get_category_by_slug( $normalized_language );
+
+		if ( $category && ! is_wp_error( $category ) ) {
+			return $category->term_id;
+		}
+
+		return false;
+	}
+
+	/**
+	 * 言語コードの正規化
+	 *
+	 * @param string $language_code 言語コード
+	 * @return string 正規化された言語コード
+	 */
+	private function normalize_language_code( $language_code ) {
+		// 言語コードのマッピング
+		$language_mapping = array(
+			'zh'    => 'zh-cn',  // 簡体字中国語
+			'zh-TW' => 'zh-tw',  // 繁体字中国語（大文字小文字統一）
+		);
+
+		return isset( $language_mapping[ $language_code ] ) ? $language_mapping[ $language_code ] : $language_code;
 	}
 }
