@@ -528,14 +528,26 @@ class ANDW_AI_Translate_Page_Generator {
 			return false;
 		}
 
-		// 言語コードの正規化（zh → zh-cn に変換）
+		// 言語コードの正規化
 		$normalized_language = $this->normalize_language_code( $language_code );
 
-		// スラッグでカテゴリーを検索
-		$category = get_category_by_slug( $normalized_language );
+		// 複数のスラッグパターンで検索（優先順位順）
+		$possible_slugs = array(
+			$normalized_language,           // 正規化後の言語コード (ko, en, etc.)
+			$language_code,                // 元の言語コード
+			strtolower( $language_code ),  // 小文字化
+		);
 
-		if ( $category && ! is_wp_error( $category ) ) {
-			return $category->term_id;
+		// 各スラッグパターンでカテゴリーを検索
+		foreach ( $possible_slugs as $slug ) {
+			if ( empty( $slug ) ) {
+				continue;
+			}
+
+			$category = get_category_by_slug( $slug );
+			if ( $category && ! is_wp_error( $category ) ) {
+				return $category->term_id;
+			}
 		}
 
 		return false;
@@ -548,12 +560,21 @@ class ANDW_AI_Translate_Page_Generator {
 	 * @return string 正規化された言語コード
 	 */
 	private function normalize_language_code( $language_code ) {
-		// 言語コードのマッピング
+		// すべての対応言語の正規化マッピング
 		$language_mapping = array(
 			'zh'    => 'zh-cn',  // 簡体字中国語
-			'zh-TW' => 'zh-tw',  // 繁体字中国語（大文字小文字統一）
+			'zh-TW' => 'zh-tw',  // 繁体字中国語
+			'ko'    => 'ko',     // 韓国語
+			'en'    => 'en',     // 英語
+			'fr'    => 'fr',     // フランス語
+			'de'    => 'de',     // ドイツ語
+			'es'    => 'es',     // スペイン語
+			'mn'    => 'mn',     // モンゴル語
+			'it'    => 'it',     // イタリア語
+			'pt'    => 'pt',     // ポルトガル語
+			'ru'    => 'ru',     // ロシア語
 		);
 
-		return isset( $language_mapping[ $language_code ] ) ? $language_mapping[ $language_code ] : $language_code;
+		return isset( $language_mapping[ $language_code ] ) ? $language_mapping[ $language_code ] : strtolower( $language_code );
 	}
 }
