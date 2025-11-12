@@ -398,14 +398,7 @@ class ANDW_AI_Translate_Meta_Box {
 			$page_generator = new ANDW_AI_Translate_Page_Generator();
 			$result = $page_generator->create_translated_page( $post_id, $target_language, $pending_data );
 
-			// ページ生成結果をデバッグログに記録
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				if ( is_wp_error( $result ) ) {
-					error_log( 'andW AI Translate - ページ生成失敗: ' . $result->get_error_message() );
-				} else {
-					error_log( 'andW AI Translate - ページ生成成功: 投稿ID ' . $result );
-				}
-			}
+			// Debug logging removed
 		}
 
 		// 承認済みデータとして保存
