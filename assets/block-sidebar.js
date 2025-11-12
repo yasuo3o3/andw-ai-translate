@@ -151,12 +151,23 @@
             jQuery.ajax({
                 url: ajaxurl,
                 type: 'POST',
+                timeout: 300000, // 5分のタイムアウト
                 data: {
                     action: 'andw_ai_translate_block',
                     nonce: andwBlockTranslate.nonce,
                     block_data: JSON.stringify(selectedBlock),
                     target_language: targetLanguage,
                     provider: provider
+                },
+                beforeSend: function() {
+                    console.log('andW AI Translate - AJAX送信開始:', {
+                        url: ajaxurl,
+                        action: 'andw_ai_translate_block',
+                        nonce: andwBlockTranslate.nonce ? 'あり' : 'なし',
+                        blockDataLength: JSON.stringify(selectedBlock).length,
+                        targetLanguage: targetLanguage,
+                        provider: provider
+                    });
                 }
             }).then(function(response) {
                 console.log('andW AI Translate - 翻訳API応答:', response);
@@ -191,13 +202,30 @@
                         content: response.data || __('翻訳に失敗しました', 'andw-ai-translate')
                     });
                 }
-            }).catch(function(error) {
-                console.error('andW AI Translate - 翻訳エラー:', error);
+            }).catch(function(xhr, status, error) {
+                console.error('andW AI Translate - 翻訳エラー:', {
+                    xhr: xhr,
+                    status: status,
+                    error: error,
+                    responseText: xhr.responseText
+                });
+
+                let errorMessage = __('通信エラーが発生しました', 'andw-ai-translate');
+
+                if (status === 'timeout') {
+                    errorMessage = __('タイムアウトが発生しました。しばらく待ってから再試行してください', 'andw-ai-translate');
+                } else if (xhr.responseJSON && xhr.responseJSON.data) {
+                    errorMessage = xhr.responseJSON.data;
+                } else if (xhr.responseText) {
+                    errorMessage = __('サーバーエラー: ', 'andw-ai-translate') + xhr.responseText.substring(0, 100);
+                }
+
                 setNotice({
                     status: 'error',
-                    content: __('通信エラーが発生しました', 'andw-ai-translate')
+                    content: errorMessage
                 });
             }).finally(function() {
+                console.log('andW AI Translate - 翻訳処理終了（成功/失敗問わず）');
                 setIsTranslating(false);
             });
         };
