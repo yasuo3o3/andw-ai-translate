@@ -169,6 +169,7 @@ class ANDW_AI_Translate_Expiry_Manager {
 		}
 
 		$badge_color = $remaining_days <= 3 ? '#dc3232' : '#ffb900';
+		/* translators: %d = 投稿の期限までの日数 */
 		$badge_text = $remaining_days <= 0 ? __( '期限切れ', 'andw-ai-translate' ) : sprintf( __( '残り%d日', 'andw-ai-translate' ), $remaining_days );
 
 		$wp_admin_bar->add_node(
