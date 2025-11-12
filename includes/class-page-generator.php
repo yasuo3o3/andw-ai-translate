@@ -371,8 +371,10 @@ class ANDW_AI_Translate_Page_Generator {
 	 * 言語リダイレクト処理
 	 */
 	public function handle_language_redirect() {
-		// URLパラメータによる言語切り替え
+		// URLパラメータによる言語切り替え（公開ページの言語切替のためnonce不要）
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 公開ページの言語切替リンクでnonceは不要
 		if ( isset( $_GET['lang'] ) && is_singular() ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 公開ページの言語切替リンクでnonceは不要
 			$target_language = sanitize_text_field( wp_unslash( $_GET['lang'] ) );
 			global $post;
 
