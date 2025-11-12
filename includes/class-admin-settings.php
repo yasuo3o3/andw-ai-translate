@@ -434,10 +434,10 @@ class ANDW_AI_Translate_Admin_Settings {
 								'mn' => __( 'モンゴル語 (монгол хэл)', 'andw-ai-translate' ),
 							);
 							foreach ( $available_languages as $code => $label ) :
-								$checked = in_array( $code, $target_languages, true ) ? 'checked="checked"' : '';
+								$is_checked = in_array( $code, $target_languages, true );
 							?>
 								<label style="display: block; margin: 5px 0;">
-									<input type="checkbox" name="target_languages[]" value="<?php echo esc_attr( $code ); ?>" <?php echo $checked; ?> />
+									<input type="checkbox" name="target_languages[]" value="<?php echo esc_attr( $code ); ?>" <?php checked( $is_checked, true, true ); ?> />
 									<?php echo esc_html( $label ); ?>
 								</label>
 							<?php endforeach; ?>
