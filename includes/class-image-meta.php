@@ -284,9 +284,10 @@ class ANDW_AI_Translate_Image_Meta {
 
 		// 言語別メタデータの保存
 		if ( isset( $_POST['andw_image_meta'] ) && is_array( $_POST['andw_image_meta'] ) ) {
+			$image_meta = wp_unslash( $_POST['andw_image_meta'] );
 			$language_meta = array();
 
-			foreach ( $_POST['andw_image_meta'] as $lang_code => $meta_data ) {
+			foreach ( $image_meta as $lang_code => $meta_data ) {
 				$lang_code = sanitize_text_field( $lang_code );
 
 				if ( is_array( $meta_data ) ) {
