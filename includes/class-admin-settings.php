@@ -222,19 +222,10 @@ class ANDW_AI_Translate_Admin_Settings {
 		// OpenAI APIキー
 		if ( ! empty( $_POST['openai_api_key'] ) ) {
 			$api_key = sanitize_text_field( wp_unslash( $_POST['openai_api_key'] ) );
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: OpenAI APIキー保存を試行' );
-			}
 			$result = $this->api_manager->save_api_key( 'openai', $api_key );
 			if ( is_wp_error( $result ) ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate: OpenAI APIキー保存失敗 - ' . $result->get_error_message() );
-				}
 				add_settings_error( 'andw_ai_translate', 'openai_key_error', $result->get_error_message(), 'error' );
 			} else {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate: OpenAI APIキー保存成功' );
-				}
 				$saved = true;
 			}
 		}
@@ -242,32 +233,17 @@ class ANDW_AI_Translate_Admin_Settings {
 		// Claude APIキー
 		if ( ! empty( $_POST['claude_api_key'] ) ) {
 			$api_key = sanitize_text_field( wp_unslash( $_POST['claude_api_key'] ) );
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: Claude APIキー保存を試行' );
-			}
 			$result = $this->api_manager->save_api_key( 'claude', $api_key );
 			if ( is_wp_error( $result ) ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate: Claude APIキー保存失敗 - ' . $result->get_error_message() );
-				}
 				add_settings_error( 'andw_ai_translate', 'claude_key_error', $result->get_error_message(), 'error' );
 			} else {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate: Claude APIキー保存成功' );
-				}
 				$saved = true;
 			}
 		}
 
 		if ( $saved ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: APIキー保存完了' );
-			}
 			add_settings_error( 'andw_ai_translate', 'api_keys_saved', __( 'APIキーを保存しました', 'andw-ai-translate' ), 'updated' );
 		} else {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: 保存するAPIキーがありませんでした' );
-			}
 			add_settings_error( 'andw_ai_translate', 'no_api_keys', __( '保存するAPIキーがありませんでした', 'andw-ai-translate' ), 'notice-warning' );
 		}
 	}
