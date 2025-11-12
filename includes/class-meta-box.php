@@ -244,6 +244,7 @@ class ANDW_AI_Translate_Meta_Box {
 							<small class="description">
 								<?php
 								$content_length = mb_strlen( wp_strip_all_tags( $post->post_content ), 'UTF-8' );
+								/* translators: %d = 投稿本文の文字数 */
 								printf( esc_html__( '文字数: %d文字', 'andw-ai-translate' ), $content_length );
 								?>
 							</small>
