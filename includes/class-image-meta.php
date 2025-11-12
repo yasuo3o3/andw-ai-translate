@@ -389,8 +389,10 @@ class ANDW_AI_Translate_Image_Meta {
 			}
 		}
 
-		// URLパラメータからの判定
+		// URLパラメータからの判定（公開ページの言語切替のためnonce不要）
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 公開ページの言語判定でnonceは不要
 		if ( isset( $_GET['lang'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- 公開ページの言語判定でnonceは不要
 			return sanitize_text_field( wp_unslash( $_GET['lang'] ) );
 		}
 
