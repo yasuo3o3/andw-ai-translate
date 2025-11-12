@@ -305,16 +305,23 @@ class ANDW_AI_Translate_Image_Meta {
 	 * AJAX: 画像メタデータの翻訳
 	 */
 	public function ajax_translate_image_meta() {
+		// 必要なPOSTデータの検証
+		if ( ! isset( $_POST['nonce'], $_POST['attachment_id'], $_POST['target_language'], $_POST['alt_text'], $_POST['caption_text'] ) ) {
+			wp_send_json_error( __( '無効なリクエストです', 'andw-ai-translate' ) );
+		}
+
+		$request = wp_unslash( $_POST );
+
 		// nonce と権限チェック
-		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'andw_ai_translate_image_meta' ) ||
+		if ( ! wp_verify_nonce( sanitize_text_field( $request['nonce'] ), 'andw_ai_translate_image_meta' ) ||
 			! current_user_can( 'edit_posts' ) ) {
 			wp_die( esc_html__( '権限がありません', 'andw-ai-translate' ) );
 		}
 
-		$attachment_id = (int) $_POST['attachment_id'];
-		$target_language = sanitize_text_field( wp_unslash( $_POST['target_language'] ) );
-		$alt_text = sanitize_text_field( wp_unslash( $_POST['alt_text'] ) );
-		$caption_text = sanitize_text_field( wp_unslash( $_POST['caption_text'] ) );
+		$attachment_id = absint( $request['attachment_id'] );
+		$target_language = sanitize_text_field( $request['target_language'] );
+		$alt_text = sanitize_text_field( $request['alt_text'] );
+		$caption_text = sanitize_text_field( $request['caption_text'] );
 
 		$translated_data = array();
 
