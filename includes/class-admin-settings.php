@@ -425,8 +425,12 @@ class ANDW_AI_Translate_Admin_Settings {
 							<?php
 							$available_languages = array(
 								'en' => __( '英語 (English)', 'andw-ai-translate' ),
-								'zh' => __( '中国語 (中文)', 'andw-ai-translate' ),
+								'zh' => __( '中国語（簡体字/中国）', 'andw-ai-translate' ),
+								'zh-TW' => __( '中国語（繁体字/台湾・香港）', 'andw-ai-translate' ),
 								'ko' => __( '韓国語 (한국어)', 'andw-ai-translate' ),
+								'fr' => __( 'フランス語 (Français)', 'andw-ai-translate' ),
+								'de' => __( 'ドイツ語 (Deutsch)', 'andw-ai-translate' ),
+								'es' => __( 'スペイン語 (Español)', 'andw-ai-translate' ),
 							);
 							foreach ( $available_languages as $code => $label ) :
 								$checked = in_array( $code, $target_languages, true ) ? 'checked="checked"' : '';

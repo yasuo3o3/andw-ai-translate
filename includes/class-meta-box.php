@@ -162,13 +162,13 @@ class ANDW_AI_Translate_Meta_Box {
 				<p>
 					<label for="andw-target-language"><?php esc_html_e( '対象言語', 'andw-ai-translate' ); ?></label>
 					<select id="andw-target-language" name="target_language">
-						<option value="en"><?php esc_html_e( '英語', 'andw-ai-translate' ); ?></option>
-						<option value="zh"><?php esc_html_e( '中国語（簡体字）', 'andw-ai-translate' ); ?></option>
-						<option value="zh-TW"><?php esc_html_e( '中国語（繁体字）', 'andw-ai-translate' ); ?></option>
-						<option value="ko"><?php esc_html_e( '韓国語', 'andw-ai-translate' ); ?></option>
-						<option value="fr"><?php esc_html_e( 'フランス語', 'andw-ai-translate' ); ?></option>
-						<option value="de"><?php esc_html_e( 'ドイツ語', 'andw-ai-translate' ); ?></option>
-						<option value="es"><?php esc_html_e( 'スペイン語', 'andw-ai-translate' ); ?></option>
+						<option value="en"><?php esc_html_e( '英語 (English)', 'andw-ai-translate' ); ?></option>
+						<option value="zh"><?php esc_html_e( '中国語（簡体字/中国）', 'andw-ai-translate' ); ?></option>
+						<option value="zh-TW"><?php esc_html_e( '中国語（繁体字/台湾・香港）', 'andw-ai-translate' ); ?></option>
+						<option value="ko"><?php esc_html_e( '韓国語 (한국어)', 'andw-ai-translate' ); ?></option>
+						<option value="fr"><?php esc_html_e( 'フランス語 (Français)', 'andw-ai-translate' ); ?></option>
+						<option value="de"><?php esc_html_e( 'ドイツ語 (Deutsch)', 'andw-ai-translate' ); ?></option>
+						<option value="es"><?php esc_html_e( 'スペイン語 (Español)', 'andw-ai-translate' ); ?></option>
 					</select>
 				</p>
 
@@ -509,8 +509,16 @@ class ANDW_AI_Translate_Meta_Box {
 		}
 
 		// ブロックレベルのキャプション
+		$block_caption = '';
 		if ( isset( $attributes['caption'] ) && ! empty( $attributes['caption'] ) ) {
-			$image_info[] = 'キャプション: ' . esc_html( wp_strip_all_tags( $attributes['caption'] ) );
+			$block_caption = wp_strip_all_tags( $attributes['caption'] );
+			$image_info[] = 'キャプション: ' . esc_html( $block_caption );
+		}
+
+		// innerHTML からfigcaptionを抽出
+		$figcaption_content = '';
+		if ( isset( $block['innerHTML'] ) && preg_match('/<figcaption[^>]*>(.*?)<\/figcaption>/s', $block['innerHTML'], $caption_matches ) ) {
+			$figcaption_content = wp_strip_all_tags( $caption_matches[1] );
 		}
 
 		// 情報がない場合のフォールバック
@@ -518,10 +526,19 @@ class ANDW_AI_Translate_Meta_Box {
 			$image_info[] = '[画像]';
 		}
 
-		return '<div class="andw-image-placeholder">' .
-			   '<span class="andw-image-icon">🖼️</span>' .
-			   '<span class="andw-image-info">' . implode( ' | ', $image_info ) . '</span>' .
-			   '</div>';
+		$result = '<div class="andw-image-placeholder">' .
+				  '<span class="andw-image-icon">🖼️</span>' .
+				  '<span class="andw-image-info">' . implode( ' | ', $image_info ) . '</span>' .
+				  '</div>';
+
+		// figcaption があれば追加（ブロック属性のキャプションと異なる場合）
+		if ( ! empty( $figcaption_content ) && $figcaption_content !== $block_caption ) {
+			$result .= '<figcaption class="andw-preserved-figcaption">' . esc_html( $figcaption_content ) . '</figcaption>';
+		} elseif ( ! empty( $block_caption ) ) {
+			$result .= '<figcaption class="andw-preserved-figcaption">' . esc_html( $block_caption ) . '</figcaption>';
+		}
+
+		return $result;
 	}
 
 	/**
@@ -607,7 +624,14 @@ class ANDW_AI_Translate_Meta_Box {
 	 * @return string 処理済みコンテンツ
 	 */
 	private function process_classic_content_for_original_display( $content ) {
-		// img タグを画像情報に置換
+		// figure要素（画像 + figcaption）を処理
+		$content = preg_replace_callback(
+			'/<figure[^>]*>(.*?)<\/figure>/s',
+			array( $this, 'replace_figure_with_info' ),
+			$content
+		);
+
+		// 残りの img タグを画像情報に置換
 		$content = preg_replace_callback(
 			'/<img[^>]*>/i',
 			array( $this, 'replace_img_tag_with_info' ),
@@ -615,6 +639,60 @@ class ANDW_AI_Translate_Meta_Box {
 		);
 
 		return $content;
+	}
+
+	/**
+	 * figure要素を画像情報に置換するコールバック
+	 *
+	 * @param array $matches マッチした内容
+	 * @return string 置換後の文字列
+	 */
+	private function replace_figure_with_info( $matches ) {
+		$figure_content = $matches[1];
+		$image_info = array();
+		$figcaption_content = '';
+
+		// figcaption を抽出・保持
+		if ( preg_match('/<figcaption[^>]*>(.*?)<\/figcaption>/s', $figure_content, $caption_matches ) ) {
+			$figcaption_content = wp_strip_all_tags( $caption_matches[1] );
+		}
+
+		// img タグから情報を抽出
+		if ( preg_match('/<img[^>]*>/i', $figure_content, $img_matches ) ) {
+			$img_tag = $img_matches[0];
+
+			// alt属性を抽出
+			if ( preg_match('/alt=["\']([^"\']*)["\']/', $img_tag, $alt_matches ) ) {
+				$image_info[] = 'ALT: ' . esc_html( $alt_matches[1] );
+			}
+
+			// title属性を抽出
+			if ( preg_match('/title=["\']([^"\']*)["\']/', $img_tag, $title_matches ) ) {
+				$image_info[] = 'タイトル: ' . esc_html( $title_matches[1] );
+			}
+
+			// src属性からファイル名を抽出
+			if ( preg_match('/src=["\']([^"\']*)["\']/', $img_tag, $src_matches ) ) {
+				$filename = basename( $src_matches[1] );
+				$image_info[] = 'ファイル名: ' . esc_html( $filename );
+			}
+		}
+
+		if ( empty( $image_info ) ) {
+			$image_info[] = '[画像]';
+		}
+
+		$result = '<div class="andw-image-placeholder">' .
+				  '<span class="andw-image-icon">🖼️</span>' .
+				  '<span class="andw-image-info">' . implode( ' | ', $image_info ) . '</span>' .
+				  '</div>';
+
+		// figcaption があれば追加
+		if ( ! empty( $figcaption_content ) ) {
+			$result .= '<figcaption class="andw-preserved-figcaption">' . esc_html( $figcaption_content ) . '</figcaption>';
+		}
+
+		return $result;
 	}
 
 	/**

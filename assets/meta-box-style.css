@@ -435,6 +435,18 @@
 	background: #fff3cd;
 }
 
+/* 保持されたfigcaption */
+.andw-preserved-figcaption {
+	font-size: 13px;
+	color: #666;
+	font-style: italic;
+	margin: 8px 0;
+	padding: 8px 12px;
+	background: #f8f9fa;
+	border-left: 3px solid #dee2e6;
+	border-radius: 0 4px 4px 0;
+}
+
 /* レスポンシブ */
 @media (max-width: 768px) {
 	.andw-ab-comparison {

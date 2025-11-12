@@ -215,13 +215,13 @@ class ANDW_AI_Translate_Page_Generator {
 	 */
 	private function get_language_suffix( $language ) {
 		$suffixes = array(
-			'en'    => ' (EN)',
-			'zh'    => ' (中文)',
-			'zh-TW' => ' (繁中)',
+			'en'    => ' (English)',
+			'zh'    => ' (简体中文)',
+			'zh-TW' => ' (繁體中文)',
 			'ko'    => ' (한국어)',
-			'fr'    => ' (FR)',
-			'de'    => ' (DE)',
-			'es'    => ' (ES)',
+			'fr'    => ' (Français)',
+			'de'    => ' (Deutsch)',
+			'es'    => ' (Español)',
 		);
 
 		return isset( $suffixes[ $language ] ) ? $suffixes[ $language ] : ' (' . strtoupper( $language ) . ')';
@@ -513,8 +513,8 @@ class ANDW_AI_Translate_Page_Generator {
 		$translations = $this->get_available_translations( $post_id );
 		$language_names = array(
 			'en' => 'English',
-			'zh' => '中文',
-			'zh-TW' => '繁中',
+			'zh' => '中文（簡体字）',
+			'zh-TW' => '中文（繁体字）',
 			'ko' => '한국어',
 			'fr' => 'Français',
 			'de' => 'Deutsch',
