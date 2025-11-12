@@ -170,9 +170,6 @@ class ANDW_AI_Translate_Admin_Settings {
 			if ( in_array( $provider, array( 'openai', 'claude' ), true ) ) {
 				update_option( 'andw_ai_translate_provider', $provider );
 				$saved_count++;
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate: 既定プロバイダを保存 - ' . $provider );
-				}
 			}
 		}
 
@@ -181,16 +178,10 @@ class ANDW_AI_Translate_Admin_Settings {
 			$languages = array_map( 'sanitize_text_field', wp_unslash( $_POST['target_languages'] ) );
 			update_option( 'andw_ai_translate_languages', $languages );
 			$saved_count++;
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: 対象言語を保存 - ' . implode( ', ', $languages ) );
-			}
 		} else {
 			// 対象言語が未選択の場合は空配列で保存
 			update_option( 'andw_ai_translate_languages', array() );
 			$saved_count++;
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate: 対象言語を空で保存' );
-			}
 		}
 
 		// 期限プリセットの保存
