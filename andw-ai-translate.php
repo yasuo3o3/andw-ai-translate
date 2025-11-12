@@ -119,7 +119,17 @@ class ANDW_AI_Translate {
 
 			// ブロックサイドバーの初期化
 			if ( class_exists( 'ANDW_AI_Translate_Block_Sidebar' ) ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'andW AI Translate - ブロックサイドバークラス存在確認成功' );
+				}
 				new ANDW_AI_Translate_Block_Sidebar();
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'andW AI Translate - ブロックサイドバーインスタンス作成完了' );
+				}
+			} else {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( 'andW AI Translate - ブロックサイドバークラスが見つかりません' );
+				}
 			}
 
 			add_action( 'admin_init', array( $this, 'admin_init' ) );

@@ -147,12 +147,14 @@
             setIsTranslating(true);
             setNotice(null);
 
-            // REST API呼び出し
-            wp.apiFetch({
-                path: '/andw-ai-translate/v1/block',
-                method: 'POST',
+            // AJAX呼び出し（既存のメタボックス機能を利用）
+            jQuery.ajax({
+                url: ajaxurl,
+                type: 'POST',
                 data: {
-                    block_data: selectedBlock,
+                    action: 'andw_ai_translate_block',
+                    nonce: andwBlockTranslate.nonce,
+                    block_data: JSON.stringify(selectedBlock),
                     target_language: targetLanguage,
                     provider: provider
                 }

@@ -131,7 +131,7 @@ class ANDW_AI_Translate_Block_Sidebar {
 			'andw-ai-translate-block-sidebar',
 			'andwBlockTranslate',
 			array(
-				'nonce' => wp_create_nonce( 'andw_ai_translate_block_sidebar' ),
+				'nonce' => wp_create_nonce( 'andw_ai_translate_meta_box' ),
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'restUrl' => rest_url( 'andw-ai-translate/v1/' ),
 				'availableProviders' => $available_providers,
