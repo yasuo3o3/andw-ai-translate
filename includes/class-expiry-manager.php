@@ -78,9 +78,6 @@ class ANDW_AI_Translate_Expiry_Manager {
 
 		// 通知の設定
 		set_transient( 'andw_ai_translate_expired_notice', true, HOUR_IN_SECONDS );
-
-		// ログ記録
-		error_log( 'andW AI Translate: APIキーが期限切れにより自動削除されました - ' . current_time( 'Y-m-d H:i:s' ) );
 	}
 
 	/**
