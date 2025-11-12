@@ -162,10 +162,7 @@ class ANDW_AI_Translate_Translation_Engine {
 		$language_name = $this->get_language_name( $target_language );
 		$prompt = $this->get_translation_prompt( $text, $language_name );
 
-		// デバッグログ: 送信プロンプト
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - OpenAI 送信プロンプト: ' . $prompt );
-		}
+		// Debug logging removed
 
 		$body = array(
 			'model' => 'gpt-3.5-turbo',
@@ -192,9 +189,6 @@ class ANDW_AI_Translate_Translation_Engine {
 		);
 
 		if ( is_wp_error( $response ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - OpenAI API接続エラー: ' . $response->get_error_message() );
-			}
 			return new WP_Error( 'api_error', __( 'OpenAI APIへの接続に失敗しました', 'andw-ai-translate' ) );
 		}
 
@@ -202,33 +196,20 @@ class ANDW_AI_Translate_Translation_Engine {
 		$response_body = wp_remote_retrieve_body( $response );
 		$data = json_decode( $response_body, true );
 
-		// デバッグログ: API応答
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - OpenAI API応答ステータス: ' . $status_code );
-			error_log( 'andW AI Translate - OpenAI API応答ボディ: ' . $response_body );
-		}
+		// Debug logging removed
 
 		if ( $status_code !== 200 ) {
 			$error_message = isset( $data['error']['message'] ) ? $data['error']['message'] : __( 'OpenAI API エラーが発生しました', 'andw-ai-translate' );
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - OpenAI APIエラー: ' . $error_message );
-			}
 			return new WP_Error( 'api_error', $error_message );
 		}
 
 		if ( ! isset( $data['choices'][0]['message']['content'] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - OpenAI API無効応答: ' . print_r( $data, true ) );
-			}
 			return new WP_Error( 'invalid_response', __( 'OpenAI APIから無効な応答を受信しました', 'andw-ai-translate' ) );
 		}
 
 		$translated_text = trim( $data['choices'][0]['message']['content'] );
 
-		// デバッグログ: 翻訳結果
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - OpenAI 翻訳結果: ' . $translated_text );
-		}
+		// Debug logging removed
 
 		return $translated_text;
 	}
@@ -249,10 +230,7 @@ class ANDW_AI_Translate_Translation_Engine {
 		$language_name = $this->get_language_name( $target_language );
 		$prompt = $this->get_translation_prompt( $text, $language_name );
 
-		// デバッグログ: 送信プロンプト
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - Claude 送信プロンプト: ' . $prompt );
-		}
+		// Debug logging removed
 
 		$body = array(
 			'model' => 'claude-3-haiku-20240307',
