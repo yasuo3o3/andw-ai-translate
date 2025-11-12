@@ -362,6 +362,12 @@ class ANDW_AI_Translate_Image_Meta {
 	/**
 	 * 画像属性のフィルタリング（出力時に言語別メタを適用）
 	 */
+	/**
+	 * @param array        $attr       画像属性配列.
+	 * @param WP_Post      $attachment 添付ファイルオブジェクト.
+	 * @param string|array $size       画像サイズ.
+	 * @return array
+	 */
 	public function filter_image_attributes( $attr, $attachment, $size ) {
 		// 現在の言語を判定
 		$current_language = $this->get_current_language();
