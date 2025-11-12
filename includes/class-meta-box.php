@@ -250,7 +250,7 @@ class ANDW_AI_Translate_Meta_Box {
 			</div>
 
 			<!-- ブロック単位翻訳エリア -->
-			<div id="andw-block-translation" style="display: none;">
+			<div id="andw-block-translation">
 				<h4><?php esc_html_e( 'ブロック単位翻訳', 'andw-ai-translate' ); ?></h4>
 				<p><?php esc_html_e( 'エディタでブロックを選択してから翻訳ボタンを押してください', 'andw-ai-translate' ); ?></p>
 
