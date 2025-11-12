@@ -173,8 +173,8 @@ class ANDW_AI_Translate_Admin_Settings {
 		$saved_count = 0;
 
 		// 既定プロバイダの保存
-		if ( isset( $_POST['default_provider'] ) ) {
-			$provider = sanitize_text_field( wp_unslash( $_POST['default_provider'] ) );
+		if ( isset( $this->request_data['default_provider'] ) ) {
+			$provider = sanitize_text_field( $this->request_data['default_provider'] );
 			if ( in_array( $provider, array( 'openai', 'claude' ), true ) ) {
 				update_option( 'andw_ai_translate_provider', $provider );
 				$saved_count++;
@@ -182,8 +182,8 @@ class ANDW_AI_Translate_Admin_Settings {
 		}
 
 		// 対象言語の保存
-		if ( isset( $_POST['target_languages'] ) && is_array( $_POST['target_languages'] ) ) {
-			$languages = array_map( 'sanitize_text_field', wp_unslash( $_POST['target_languages'] ) );
+		if ( isset( $this->request_data['target_languages'] ) && is_array( $this->request_data['target_languages'] ) ) {
+			$languages = array_map( 'sanitize_text_field', $this->request_data['target_languages'] );
 			update_option( 'andw_ai_translate_languages', $languages );
 			$saved_count++;
 		} else {
@@ -193,8 +193,8 @@ class ANDW_AI_Translate_Admin_Settings {
 		}
 
 		// 期限プリセットの保存
-		if ( isset( $_POST['expiry_preset'] ) ) {
-			$preset = (int) $_POST['expiry_preset'];
+		if ( isset( $this->request_data['expiry_preset'] ) ) {
+			$preset = (int) $this->request_data['expiry_preset'];
 			if ( in_array( $preset, array( 30, 60 ), true ) ) {
 				update_option( 'andw_ai_translate_expiry_preset', $preset );
 				$saved_count++;
@@ -202,14 +202,14 @@ class ANDW_AI_Translate_Admin_Settings {
 		}
 
 		// 使用制限の保存
-		if ( isset( $_POST['limit_daily'] ) ) {
-			$limit = (int) $_POST['limit_daily'];
+		if ( isset( $this->request_data['limit_daily'] ) ) {
+			$limit = (int) $this->request_data['limit_daily'];
 			update_option( 'andw_ai_translate_limit_daily', max( 0, $limit ) );
 			$saved_count++;
 		}
 
-		if ( isset( $_POST['limit_monthly'] ) ) {
-			$limit = (int) $_POST['limit_monthly'];
+		if ( isset( $this->request_data['limit_monthly'] ) ) {
+			$limit = (int) $this->request_data['limit_monthly'];
 			update_option( 'andw_ai_translate_limit_monthly', max( 0, $limit ) );
 			$saved_count++;
 		}
@@ -228,8 +228,8 @@ class ANDW_AI_Translate_Admin_Settings {
 		$saved = false;
 
 		// OpenAI APIキー
-		if ( ! empty( $_POST['openai_api_key'] ) ) {
-			$api_key = sanitize_text_field( wp_unslash( $_POST['openai_api_key'] ) );
+		if ( ! empty( $this->request_data['openai_api_key'] ) ) {
+			$api_key = sanitize_text_field( $this->request_data['openai_api_key'] );
 			$result = $this->api_manager->save_api_key( 'openai', $api_key );
 			if ( is_wp_error( $result ) ) {
 				add_settings_error( 'andw_ai_translate', 'openai_key_error', $result->get_error_message(), 'error' );
@@ -239,8 +239,8 @@ class ANDW_AI_Translate_Admin_Settings {
 		}
 
 		// Claude APIキー
-		if ( ! empty( $_POST['claude_api_key'] ) ) {
-			$api_key = sanitize_text_field( wp_unslash( $_POST['claude_api_key'] ) );
+		if ( ! empty( $this->request_data['claude_api_key'] ) ) {
+			$api_key = sanitize_text_field( $this->request_data['claude_api_key'] );
 			$result = $this->api_manager->save_api_key( 'claude', $api_key );
 			if ( is_wp_error( $result ) ) {
 				add_settings_error( 'andw_ai_translate', 'claude_key_error', $result->get_error_message(), 'error' );
