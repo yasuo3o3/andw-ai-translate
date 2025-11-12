@@ -100,10 +100,7 @@ class ANDW_AI_Translate_Page_Generator {
 			'post_content' => $this->get_translated_content( $translation_data ),
 		);
 
-		// デバッグログ: 更新データの確認
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - ページ更新データ: 投稿ID ' . $translated_post_id . ', 本文長: ' . mb_strlen( $update_data['post_content'] ) . '文字' );
-		}
+		// Debug logging removed
 
 		$result = wp_update_post( $update_data );
 
@@ -122,16 +119,11 @@ class ANDW_AI_Translate_Page_Generator {
 	 * 翻訳されたコンテンツを安全に取得
 	 */
 	private function get_translated_content( $translation_data ) {
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - データ構造チェック: ' . print_r( array_keys( $translation_data ), true ) );
-		}
+		// Debug logging removed
 
 		// 承認データ構造からの取得 (最優先)
 		if ( isset( $translation_data['translation_result']['translated_content'] ) ) {
 			$content = $translation_data['translation_result']['translated_content'];
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - 承認データから本文取得成功: ' . mb_strlen( $content ) . '文字' );
-			}
 			return $content;
 		}
 
