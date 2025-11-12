@@ -107,6 +107,8 @@ class ANDW_AI_Translate_Meta_Box {
 					'confirmApprove' => __( 'この翻訳を承認しますか？', 'andw-ai-translate' ),
 					'confirmReject' => __( 'この翻訳を却下しますか？', 'andw-ai-translate' ),
 					'noProvider' => __( '利用可能なプロバイダがありません', 'andw-ai-translate' ),
+					'showOriginal' => __( '原文を表示', 'andw-ai-translate' ),
+					'hideOriginal' => __( '原文を非表示', 'andw-ai-translate' ),
 				),
 			)
 		);
@@ -220,6 +222,32 @@ class ANDW_AI_Translate_Meta_Box {
 					<button type="button" id="andw-reject-translation" class="button button-secondary">
 						<?php esc_html_e( '却下', 'andw-ai-translate' ); ?>
 					</button>
+				</div>
+
+				<!-- 原文表示セクション -->
+				<div class="andw-original-text-section">
+					<div class="andw-original-text-toggle">
+						<button type="button" id="toggle-original-text" class="button button-secondary">
+							<span class="dashicons dashicons-visibility"></span>
+							<?php esc_html_e( '原文を表示', 'andw-ai-translate' ); ?>
+						</button>
+						<small class="description"><?php esc_html_e( '翻訳品質確認のため日本語原文を表示', 'andw-ai-translate' ); ?></small>
+					</div>
+
+					<div id="original-text-container" style="display: none;">
+						<h5><?php esc_html_e( '参考：日本語原文', 'andw-ai-translate' ); ?></h5>
+						<div class="original-content">
+							<?php echo wp_kses_post( $post->post_content ); ?>
+						</div>
+						<div class="original-text-info">
+							<small class="description">
+								<?php
+								$content_length = mb_strlen( wp_strip_all_tags( $post->post_content ), 'UTF-8' );
+								printf( esc_html__( '文字数: %d文字', 'andw-ai-translate' ), $content_length );
+								?>
+							</small>
+						</div>
+					</div>
 				</div>
 			</div>
 

@@ -283,9 +283,67 @@
         }
     };
 
+    // 原文表示機能
+    var andwOriginalText = {
+        init: function() {
+            this.bindEvents();
+            this.loadToggleState();
+        },
+
+        bindEvents: function() {
+            $(document).on('click', '#toggle-original-text', this.toggleOriginalText.bind(this));
+        },
+
+        toggleOriginalText: function() {
+            var $container = $('#original-text-container');
+            var $button = $('#toggle-original-text');
+            var $icon = $button.find('.dashicons');
+            var $text = $button.contents().filter(function() {
+                return this.nodeType === 3; // テキストノードのみ
+            });
+
+            if ($container.is(':visible')) {
+                // 非表示にする
+                $container.slideUp(300, function() {
+                    $button.html('<span class="dashicons dashicons-visibility"></span> ' + andwAiTranslate.strings.showOriginal);
+                    andwOriginalText.saveToggleState(false);
+                });
+            } else {
+                // 表示する
+                $container.slideDown(300, function() {
+                    $button.html('<span class="dashicons dashicons-hidden"></span> ' + andwAiTranslate.strings.hideOriginal);
+                    andwOriginalText.saveToggleState(true);
+                });
+            }
+        },
+
+        saveToggleState: function(isVisible) {
+            // セッションストレージに状態を保存
+            if (typeof(Storage) !== 'undefined') {
+                sessionStorage.setItem('andw_original_text_visible', isVisible ? '1' : '0');
+            }
+        },
+
+        loadToggleState: function() {
+            // セッションストレージから状態を復元
+            if (typeof(Storage) !== 'undefined') {
+                var isVisible = sessionStorage.getItem('andw_original_text_visible') === '1';
+                if (isVisible) {
+                    var $container = $('#original-text-container');
+                    var $button = $('#toggle-original-text');
+                    if ($container.length && $button.length) {
+                        $container.show();
+                        $button.html('<span class="dashicons dashicons-hidden"></span> ' + andwAiTranslate.strings.hideOriginal);
+                    }
+                }
+            }
+        }
+    };
+
     // 初期化
     $(document).ready(function() {
         andwTranslateMeta.init();
+        andwOriginalText.init();
     });
 
 })(jQuery);
