@@ -119,6 +119,7 @@ class ANDW_AI_Translate_Block_Parser {
 	 * @return array|WP_Error 処理済みブロックまたはエラー
 	 */
 	private function process_block_content( $block, $target_language, $provider, &$translation_data ) {
+
 		// innerHTML（ブロック内のHTMLコンテンツ）の翻訳
 
 		if ( ! empty( $block['innerHTML'] ) ) {
@@ -161,8 +162,9 @@ class ANDW_AI_Translate_Block_Parser {
 
 
 
-		
-		// ブロック属性の翻訳（特定の属性のみ）
+		// ブロック属性の翻訳（必要な属性のみ）
+
+// ブロック属性の翻訳（特定の属性のみ）
 		if ( ! empty( $block['attrs'] ) ) {
 			$block['attrs'] = $this->translate_block_attributes( $block['attrs'], $target_language, $provider, $translation_data );
 		}
@@ -211,6 +213,10 @@ class ANDW_AI_Translate_Block_Parser {
 			return $html;
 		}
 
+		if ( ! class_exists( 'DOMDocument' ) ) {
+			return new WP_Error( 'missing_dom', __( 'DOM extension is not available on this server.', 'andw-ai-translate' ) );
+		}
+
 		$previous_state = libxml_use_internal_errors( true );
 		$dom            = new DOMDocument();
 		$loaded         = $dom->loadHTML( '<?xml encoding="utf-8" ?>' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
@@ -253,7 +259,6 @@ class ANDW_AI_Translate_Block_Parser {
 		libxml_use_internal_errors( $previous_state );
 
 		return $translated_html;
-	}
 	}
 
 	/**
