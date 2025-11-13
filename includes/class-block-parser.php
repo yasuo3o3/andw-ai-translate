@@ -376,6 +376,57 @@ class ANDW_AI_Translate_Block_Parser {
 	}
 
 	/**
+	 * 翻訳済みコンテンツの再翻訳（画像要素含む）
+	 *
+	 * @param string $translated_content 翻訳済みHTML
+	 * @param string $target_language 対象言語（通常は'ja'）
+	 * @param string $provider 翻訳プロバイダ
+	 * @return array|WP_Error 再翻訳結果またはエラー
+	 */
+	public function retranslate_translated_content( $translated_content, $target_language = 'ja', $provider = null ) {
+		// 翻訳済みコンテンツをブロック構造に解析
+		$blocks = parse_blocks( $translated_content );
+
+		if ( empty( $blocks ) ) {
+			return new WP_Error( 'parse_error', __( 'コンテンツの解析に失敗しました', 'andw-ai-translate' ) );
+		}
+
+		$retranslated_blocks = array();
+		$translation_data = array();
+
+		// 各ブロックを再翻訳
+		foreach ( $blocks as $block ) {
+			if ( $this->is_translatable_block( $block['blockName'] ) ) {
+				$retranslated_block = $this->translate_block( $block, $target_language, $provider );
+
+				if ( is_wp_error( $retranslated_block ) ) {
+					return $retranslated_block;
+				}
+
+				$retranslated_blocks[] = $retranslated_block['block'];
+
+				// 翻訳データを記録
+				if ( isset( $retranslated_block['translation_data'] ) ) {
+					$translation_data = array_merge( $translation_data, $retranslated_block['translation_data'] );
+				}
+			} else {
+				$retranslated_blocks[] = $block;
+			}
+		}
+
+		// ブロック構造をHTMLに再構築
+		$retranslated_content = serialize_blocks( $retranslated_blocks );
+
+		return array(
+			'translated_content' => $retranslated_content,
+			'translation_data' => $translation_data,
+			'blocks' => $retranslated_blocks,
+			'provider' => $provider,
+			'target_language' => $target_language,
+		);
+	}
+
+	/**
 	 * ブロック差分の比較
 	 *
 	 * @param array $original_block 元のブロック
