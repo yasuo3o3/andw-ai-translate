@@ -227,10 +227,11 @@
         },
 
         formatContent: function(content) {
-            // シンプルな改行変換のみ（HTMLエスケープを除去）
-            return content.replace(/\n/g, '<br>');
+            if (!content) {
+                return '';
+            }
+            return content;
         },
-
 
         validateInputs: function() {
             var targetLanguage = $('#andw-target-language').val();

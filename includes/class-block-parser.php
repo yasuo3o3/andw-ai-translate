@@ -120,32 +120,48 @@ class ANDW_AI_Translate_Block_Parser {
 	 */
 	private function process_block_content( $block, $target_language, $provider, &$translation_data ) {
 		// innerHTML（ブロック内のHTMLコンテンツ）の翻訳
+
 		if ( ! empty( $block['innerHTML'] ) ) {
-			// 画像要素の属性を翻訳
+
+			// 画像属性の個別翻訳
+
 			$block['innerHTML'] = $this->translate_image_attributes_in_html( $block['innerHTML'], $target_language, $provider, $translation_data );
 
-			$translatable_content = $this->extract_translatable_content( $block['innerHTML'] );
 
-			if ( ! empty( $translatable_content ) ) {
-				$translation_result = $this->translation_engine->translate( $translatable_content, $target_language, $provider );
 
-				if ( is_wp_error( $translation_result ) ) {
-					return $translation_result;
-				}
+			$translated_html = $this->translate_html_text_nodes(
 
-				// 翻訳結果でHTMLを更新
-				$block['innerHTML'] = $this->replace_translatable_content( $block['innerHTML'], $translation_result['translated_text'] );
-				$this->sync_inner_content( $block );
+				$block['innerHTML'],
 
-				// 翻訳データの記録
-				$translation_data[] = array(
-					'original' => $translatable_content,
-					'translated' => $translation_result['translated_text'],
-					'block_type' => $block['blockName'],
-				);
+				$target_language,
+
+				$provider,
+
+				$translation_data,
+
+				isset( $block['blockName'] ) ? $block['blockName'] : 'unknown'
+
+			);
+
+
+
+			if ( is_wp_error( $translated_html ) ) {
+
+				return $translated_html;
+
 			}
+
+
+
+			$block['innerHTML'] = $translated_html;
+
+			$this->sync_inner_content( $block );
+
 		}
 
+
+
+		
 		// ブロック属性の翻訳（特定の属性のみ）
 		if ( ! empty( $block['attrs'] ) ) {
 			$block['attrs'] = $this->translate_block_attributes( $block['attrs'], $target_language, $provider, $translation_data );
@@ -173,250 +189,71 @@ class ANDW_AI_Translate_Block_Parser {
 	 * @param string $html HTML文字列
 	 * @return string 翻訳可能なテキスト
 	 */
+		/**
+	 * HTML内テキストノードの翻訳（既存API互換のため残置）
+	 */
 	private function extract_translatable_content( $html ) {
-		// HTMLタグを除去してテキストのみを抽出
-		$text = wp_strip_all_tags( $html );
-		$text = trim( $text );
-
-		// 空白文字のみの場合は翻訳しない
-		if ( empty( $text ) || ctype_space( $text ) ) {
-			return '';
-		}
-
-		// 数字のみの場合は翻訳しない
-		if ( is_numeric( $text ) ) {
-			return '';
-		}
-
-		// URL、メールアドレス等は翻訳しない
-		if ( filter_var( $text, FILTER_VALIDATE_URL ) || filter_var( $text, FILTER_VALIDATE_EMAIL ) ) {
-			return '';
-		}
-
-		return $text;
+		return '';
 	}
 
 	/**
-	 * HTMLの翻訳可能部分を翻訳結果で置換
+	 * HTML内テキストノードを逐次翻訳
 	 *
-	 * @param string $html 元のHTML
-	 * @param string $translated_text 翻訳されたテキスト
-	 * @return string 更新されたHTML
+	 * @param string $html HTMLコンテンツ
+	 * @param string $target_language 目標言語
+	 * @param string $provider プロバイダ
+	 * @param array  $translation_data 翻訳メタ情報
+	 * @param string $block_name ブロック名
+	 * @return string|WP_Error 翻訳済みHTMLまたはエラー
 	 */
-	private function replace_translatable_content( $html, $translated_text ) {
-		// HTMLエンティティをデコード
-		$html = html_entity_decode( $html, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+	private function translate_html_text_nodes( $html, $target_language, $provider, &$translation_data, $block_name ) {
+		if ( '' === trim( $html ) ) {
+			return $html;
+		}
 
-		// DOMパーサーによる改良版置換
-		if ( function_exists( 'mb_convert_encoding' ) && class_exists( 'DOMDocument' ) ) {
-			$dom = new DOMDocument();
-			$dom->encoding = 'UTF-8';
+		$previous_state = libxml_use_internal_errors( true );
+		$dom            = new DOMDocument();
+		$loaded         = $dom->loadHTML( '<?xml encoding="utf-8" ?>' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
 
-			// HTMLエラーを無視してロード
-			libxml_use_internal_errors( true );
-			$dom->loadHTML( '<?xml encoding="UTF-8">' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+		if ( ! $loaded ) {
 			libxml_clear_errors();
+			libxml_use_internal_errors( $previous_state );
+			return new WP_Error( 'html_parse_error', __( 'HTMLの解析に失敗しました', 'andw-ai-translate' ) );
+		}
 
-			// テキストノードのみを抽出して置換
-			$xpath = new DOMXPath( $dom );
-			$textNodes = $xpath->query( '//text()[normalize-space()]' );
+		$xpath = new DOMXPath( $dom );
+		$nodes = $xpath->query( '//text()' );
 
-			if ( $textNodes->length > 0 ) {
-				$original_text = '';
-				foreach ( $textNodes as $node ) {
-					$original_text .= trim( $node->nodeValue );
-				}
+		foreach ( $nodes as $node ) {
+			$text_content = $node->nodeValue;
 
-				if ( ! empty( $original_text ) && ! empty( $translated_text ) ) {
-					// 最初のテキストノードに翻訳文を設定
-					$textNodes->item( 0 )->nodeValue = $translated_text;
-
-					// 残りのテキストノードを削除
-					for ( $i = $textNodes->length - 1; $i > 0; $i-- ) {
-						$node = $textNodes->item( $i );
-						if ( $node->parentNode ) {
-							$node->parentNode->removeChild( $node );
-						}
-					}
-
-					// HTML出力
-					$html = $dom->saveHTML();
-
-					// XML宣言とbody/htmlタグを除去
-					$html = preg_replace( '/^<\?xml[^>]+>\s*/', '', $html );
-					$html = preg_replace( '/<\/?(?:html|body)[^>]*>/i', '', $html );
-					$html = trim( $html );
-				}
+			if ( '' === trim( html_entity_decode( $text_content, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) ) {
+				continue;
 			}
-		} else {
-			// フォールバック: 正規表現による改良版置換
-			$original_text = wp_strip_all_tags( $html );
-			$original_text = trim( preg_replace( '/\s+/', ' ', $original_text ) );
 
-			if ( ! empty( $original_text ) && ! empty( $translated_text ) ) {
-				// より柔軟な置換（前後の空白を考慮）
-				$pattern = '/>' . preg_quote( $original_text, '/' ) . '</';
-				$replacement = '>' . esc_html( $translated_text ) . '<';
+			$translation_result = $this->translation_engine->translate( $text_content, $target_language, $provider );
 
-				if ( preg_match( $pattern, $html ) ) {
-					$html = preg_replace( $pattern, $replacement, $html, 1 );
-				} else {
-					// 単純置換もトライ
-					$html = str_replace( $original_text, esc_html( $translated_text ), $html );
-				}
+			if ( is_wp_error( $translation_result ) ) {
+				libxml_clear_errors();
+				libxml_use_internal_errors( $previous_state );
+				return $translation_result;
 			}
+
+			$node->nodeValue = $translation_result['translated_text'];
+
+			$translation_data[] = array(
+				'original'   => $text_content,
+				'translated' => $translation_result['translated_text'],
+				'block_type' => $block_name,
+			);
 		}
 
-		// HTMLエンティティを再エンコード
-		return htmlspecialchars( $html, ENT_QUOTES | ENT_HTML5, 'UTF-8', false );
+		$translated_html = $dom->saveHTML();
+		libxml_clear_errors();
+		libxml_use_internal_errors( $previous_state );
+
+		return $translated_html;
 	}
-
-	/**
-	 * ブロック属性の翻訳
-	 *
-	 * @param array $attrs ブロック属性
-	 * @param string $target_language 対象言語
-	 * @param string $provider 翻訳プロバイダ
-	 * @param array &$translation_data 翻訳データ
-	 * @return array 翻訳済み属性
-	 */
-	private function translate_block_attributes( $attrs, $target_language, $provider, &$translation_data ) {
-		// 翻訳対象の属性名
-		$translatable_attributes = array(
-			'content',      // 段落ブロックのコンテンツ
-			'citation',     // 引用ブロックの引用元
-			'value',        // リストブロックの値
-			'placeholder',  // プレースホルダー
-			'title',        // タイトル
-			'caption',      // キャプション
-			'alt',          // 画像のalt属性
-		);
-
-		foreach ( $attrs as $attr_name => $attr_value ) {
-			if ( in_array( $attr_name, $translatable_attributes, true ) && ! empty( $attr_value ) && is_string( $attr_value ) ) {
-				$translatable_content = $this->extract_translatable_content( $attr_value );
-
-				if ( ! empty( $translatable_content ) ) {
-					$translation_result = $this->translation_engine->translate( $translatable_content, $target_language, $provider );
-
-					if ( ! is_wp_error( $translation_result ) ) {
-						$attrs[ $attr_name ] = $translation_result['translated_text'];
-
-						$translation_data[] = array(
-							'original' => $translatable_content,
-							'translated' => $translation_result['translated_text'],
-							'attribute' => $attr_name,
-						);
-					}
-				}
-			}
-		}
-
-		return $attrs;
-	}
-
-	/**
-	 * innerHTML と innerContent の内容を同期
-	 *
-	 * @param array &$block ブロックデータ
-	 */
-	private function sync_inner_content( &$block ) {
-		if ( isset( $block['innerBlocks'] ) && ! empty( $block['innerBlocks'] ) ) {
-			return;
-		}
-
-		if ( isset( $block['innerHTML'] ) && $block['innerHTML'] !== '' ) {
-			$block['innerContent'] = array( $block['innerHTML'] );
-		}
-	}
-
-	/**
-	 * 翻訳済みブロックからコンテンツを再構築
-	 *
-	 * @param array $blocks 翻訳済みブロック配列
-	 * @return string 再構築されたコンテンツ
-	 */
-	private function reconstruct_content( $blocks ) {
-		$content = '';
-
-		foreach ( $blocks as $block ) {
-			$content .= serialize_block( $block );
-		}
-
-		return $content;
-	}
-
-	/**
-	 * HTML内の画像属性を翻訳
-	 *
-	 * @param string $html HTML文字列
-	 * @param string $target_language 対象言語
-	 * @param string $provider 翻訳プロバイダ
-	 * @param array &$translation_data 翻訳データ格納用配列
-	 * @return string 翻訳済みHTML
-	 */
-	private function translate_image_attributes_in_html( $html, $target_language, $provider, &$translation_data ) {
-		// img要素のalt属性を翻訳
-		$html = preg_replace_callback(
-			'/<img([^>]*?)alt=["\']([^"\']*)["\']([^>]*?)>/i',
-			function( $matches ) use ( $target_language, $provider, &$translation_data ) {
-				$alt_text = $matches[2];
-
-				if ( empty( trim( $alt_text ) ) ) {
-					return $matches[0];
-				}
-
-				$translation_result = $this->translation_engine->translate( $alt_text, $target_language, $provider );
-
-				if ( is_wp_error( $translation_result ) ) {
-					return $matches[0];
-				}
-
-				$translated_alt = $translation_result['translated_text'];
-
-				// 翻訳データを記録
-				$translation_data[] = array(
-					'original' => $alt_text,
-					'translated' => $translated_alt,
-					'attribute' => 'img_alt',
-				);
-
-				return '<img' . $matches[1] . 'alt="' . esc_attr( $translated_alt ) . '"' . $matches[3] . '>';
-			},
-			$html
-		);
-
-		// figcaption要素の内容を翻訳
-		$html = preg_replace_callback(
-			'/<figcaption([^>]*)>(.*?)<\/figcaption>/s',
-			function( $matches ) use ( $target_language, $provider, &$translation_data ) {
-				$caption_text = wp_strip_all_tags( $matches[2] );
-
-				if ( empty( trim( $caption_text ) ) ) {
-					return $matches[0];
-				}
-
-				$translation_result = $this->translation_engine->translate( $caption_text, $target_language, $provider );
-
-				if ( is_wp_error( $translation_result ) ) {
-					return $matches[0];
-				}
-
-				$translated_caption = $translation_result['translated_text'];
-
-				// 翻訳データを記録
-				$translation_data[] = array(
-					'original' => $caption_text,
-					'translated' => $translated_caption,
-					'attribute' => 'figcaption',
-				);
-
-				return '<figcaption' . $matches[1] . '>' . esc_html( $translated_caption ) . '</figcaption>';
-			},
-			$html
-		);
-
-		return $html;
 	}
 
 	/**
