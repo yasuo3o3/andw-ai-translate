@@ -221,8 +221,8 @@ class ANDW_AI_Translate_Meta_Box {
 					</select>
 					<p class="description">
 						<?php
-						/* translators: %s: 選択中のプロバイダ名 */
 						printf(
+							/* translators: %s: 選択中のプロバイダ名 */
 							esc_html__( '設定画面の既定プロバイダ「%s」が選択されています', 'andw-ai-translate' ),
 							esc_html( isset( $available_providers[ $default_provider ] ) ? $available_providers[ $default_provider ] : $default_provider )
 						);
