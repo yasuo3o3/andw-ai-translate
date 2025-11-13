@@ -483,7 +483,107 @@ class ANDW_AI_Translate_Admin_Settings {
 				</p>
 			</form>
 			<?php endif; ?>
+			<!-- デバッグ情報（WP_DEBUG時のみ表示） -->
+			<?php $this->render_debug_section(); ?>
+
 		</div>
+		<?php
+	}
+
+	/**
+	 * デバッグ情報セクションの表示
+	 */
+	private function render_debug_section() {
+		if ( ! current_user_can( 'manage_options' ) || ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+			return;
+		}
+
+		?>
+		<h2><?php esc_html_e( 'デバッグ情報', 'andw-ai-translate' ); ?></h2>
+		<div class="notice notice-info inline">
+			<p><strong><?php esc_html_e( '注意', 'andw-ai-translate' ); ?>:</strong> <?php esc_html_e( 'この情報は WP_DEBUG モードでのみ表示されます。', 'andw-ai-translate' ); ?></p>
+		</div>
+
+		<table class="form-table">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'システム状態', 'andw-ai-translate' ); ?></th>
+				<td>
+					<?php
+					// 機能利用可能性
+					$is_available = $this->expiry_manager->is_feature_available();
+					echo '<strong>' . esc_html__( '機能状態', 'andw-ai-translate' ) . ':</strong> ';
+					echo $is_available ?
+						'<span style="color: green;">✓ ' . esc_html__( '利用可能', 'andw-ai-translate' ) . '</span>' :
+						'<span style="color: red;">✗ ' . esc_html__( '利用不可', 'andw-ai-translate' ) . '</span>';
+
+					echo '<br>';
+
+					// 期限情報
+					$expiry_info = $this->expiry_manager->get_expiry_info();
+					echo '<strong>' . esc_html__( '期限状態', 'andw-ai-translate' ) . ':</strong> ';
+					if ( $expiry_info['is_expired'] ) {
+						echo '<span style="color: red;">' . esc_html__( '期限切れ', 'andw-ai-translate' ) . '</span>';
+					} elseif ( $expiry_info['expiry_date'] ) {
+						echo '<span style="color: orange;">' . esc_html( $expiry_info['remaining_days'] ) . esc_html__( ' 日残り', 'andw-ai-translate' ) . '</span>';
+					} else {
+						echo '<span style="color: blue;">' . esc_html__( '期限未設定', 'andw-ai-translate' ) . '</span>';
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'APIキー状態', 'andw-ai-translate' ); ?></th>
+				<td>
+					<?php
+					// OpenAI APIキー
+					$has_openai = $this->api_manager->has_api_key( 'openai' );
+					echo '<strong>OpenAI:</strong> ';
+					echo $has_openai ?
+						'<span style="color: green;">✓ ' . esc_html__( '設定済み', 'andw-ai-translate' ) . '</span>' :
+						'<span style="color: red;">✗ ' . esc_html__( '未設定', 'andw-ai-translate' ) . '</span>';
+
+					echo '<br>';
+
+					// Claude APIキー
+					$has_claude = $this->api_manager->has_api_key( 'claude' );
+					echo '<strong>Claude:</strong> ';
+					echo $has_claude ?
+						'<span style="color: green;">✓ ' . esc_html__( '設定済み', 'andw-ai-translate' ) . '</span>' :
+						'<span style="color: red;">✗ ' . esc_html__( '未設定', 'andw-ai-translate' ) . '</span>';
+					?>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'クラス状態', 'andw-ai-translate' ); ?></th>
+				<td>
+					<?php
+					$required_classes = array(
+						'ANDW_AI_Translate_Translation_Engine' => 'class-translation-engine.php',
+						'ANDW_AI_Translate_Block_Parser' => 'class-block-parser.php',
+						'ANDW_AI_Translate_Page_Generator' => 'class-page-generator.php',
+					);
+
+					foreach ( $required_classes as $class_name => $file_name ) {
+						echo '<strong>' . esc_html( $class_name ) . ':</strong> ';
+						if ( class_exists( $class_name ) ) {
+							echo '<span style="color: green;">✓ ' . esc_html__( '読み込み済み', 'andw-ai-translate' ) . '</span>';
+						} else {
+							echo '<span style="color: red;">✗ ' . esc_html__( '未読み込み', 'andw-ai-translate' ) . ' (' . esc_html( $file_name ) . ')</span>';
+						}
+						echo '<br>';
+					}
+					?>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'エラーログ', 'andw-ai-translate' ); ?></th>
+				<td>
+					<p><?php esc_html_e( '詳細なエラー情報は WordPress のエラーログに出力されます。', 'andw-ai-translate' ); ?></p>
+					<p><code><?php echo esc_html( ini_get( 'error_log' ) ?: '/wp-content/debug.log' ); ?></code></p>
+					<p class="description"><?php esc_html_e( '「andW AI Translate」で検索してプラグイン関連のログを確認できます。', 'andw-ai-translate' ); ?></p>
+				</td>
+			</tr>
+		</table>
 		<?php
 	}
 }

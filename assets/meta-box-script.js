@@ -84,13 +84,48 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    // デバッグログ: AJAX接続エラー
-                    console.error('andW AI Translate - AJAX接続エラー:', {
-                        status: status,
+                    // デバッグログ: 詳細なAJAX接続エラー情報
+                    console.error('andW AI Translate - 詳細エラー情報:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText,
+                        readyState: xhr.readyState,
                         error: error,
-                        response: xhr.responseText
+                        headers: xhr.getAllResponseHeaders ? xhr.getAllResponseHeaders() : '取得不可'
                     });
-                    andwTranslateMeta.showError(andwTranslate.strings.error);
+
+                    // ユーザー向けエラーメッセージの生成
+                    var errorMessage = 'AJAX接続エラー';
+
+                    if (xhr.status) {
+                        errorMessage += ' (HTTP ' + xhr.status + ')';
+                    }
+
+                    if (xhr.responseText) {
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            if (response.data) {
+                                errorMessage += ': ' + response.data;
+                            } else if (response.message) {
+                                errorMessage += ': ' + response.message;
+                            }
+                        } catch(parseError) {
+                            console.warn('andW AI Translate - レスポンスJSONの解析に失敗:', parseError);
+                            if (xhr.responseText.length < 200) {
+                                errorMessage += ': ' + xhr.responseText;
+                            } else {
+                                errorMessage += ': サーバーエラーが発生しました';
+                            }
+                        }
+                    } else if (xhr.status === 0) {
+                        errorMessage = 'ネットワーク接続エラー: サーバーに接続できません';
+                    } else if (xhr.status >= 500) {
+                        errorMessage += ': サーバー内部エラーが発生しました';
+                    } else if (xhr.status >= 400) {
+                        errorMessage += ': リクエストエラーが発生しました';
+                    }
+
+                    andwTranslateMeta.showError(errorMessage);
                     andwTranslateMeta.hideProgress();
                 }
             });
@@ -123,8 +158,34 @@
                         andwTranslateMeta.hideProgress();
                     }
                 },
-                error: function() {
-                    andwTranslateMeta.showError(andwTranslate.strings.error);
+                error: function(xhr, status, error) {
+                    // A/B比較用の詳細エラーハンドリング
+                    console.error('andW AI Translate - A/B比較エラー:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText,
+                        error: error
+                    });
+
+                    var errorMessage = 'A/B比較エラー';
+                    if (xhr.status) {
+                        errorMessage += ' (HTTP ' + xhr.status + ')';
+                    }
+
+                    if (xhr.responseText) {
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            if (response.data) {
+                                errorMessage += ': ' + response.data;
+                            }
+                        } catch(e) {
+                            if (xhr.status >= 500) {
+                                errorMessage += ': サーバー内部エラー';
+                            }
+                        }
+                    }
+
+                    andwTranslateMeta.showError(errorMessage);
                     andwTranslateMeta.hideProgress();
                 }
             });
@@ -155,8 +216,34 @@
                         andwTranslateMeta.showError(response.data || andwTranslate.strings.error);
                     }
                 },
-                error: function() {
-                    andwTranslateMeta.showError(andwTranslate.strings.error);
+                error: function(xhr, status, error) {
+                    // 翻訳承認用の詳細エラーハンドリング
+                    console.error('andW AI Translate - 翻訳承認エラー:', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        responseText: xhr.responseText,
+                        error: error
+                    });
+
+                    var errorMessage = '翻訳承認エラー';
+                    if (xhr.status) {
+                        errorMessage += ' (HTTP ' + xhr.status + ')';
+                    }
+
+                    if (xhr.responseText) {
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            if (response.data) {
+                                errorMessage += ': ' + response.data;
+                            }
+                        } catch(e) {
+                            if (xhr.status >= 500) {
+                                errorMessage += ': サーバー内部エラー';
+                            }
+                        }
+                    }
+
+                    andwTranslateMeta.showError(errorMessage);
                 }
             });
         },
