@@ -9,6 +9,7 @@
         init: function() {
             this.bindEvents();
             this.checkAvailability();
+            this.initializeSettings();
         },
 
         bindEvents: function() {
@@ -40,6 +41,58 @@
             if (providerCount < 2) {
                 $('#andw-ab-compare').prop('disabled', true).attr('title', '2つ以上のプロバイダが必要です');
             }
+        },
+
+        initializeSettings: function() {
+            // 設定値の確認
+            if (typeof andwTranslate === 'undefined' || !andwTranslate.settings) {
+                console.warn('andW AI Translate - 設定情報が読み込まれていません');
+                return;
+            }
+
+            var settings = andwTranslate.settings;
+
+            // デフォルトプロバイダの設定確認
+            if (settings.defaultProvider) {
+                var $providerSelect = $('#andw-provider');
+                if ($providerSelect.length) {
+                    // 既にHTMLで設定されているため、設定値と一致するかログ出力
+                    var currentSelection = $providerSelect.val();
+                    if (currentSelection !== settings.defaultProvider) {
+                        console.log('andW AI Translate - プロバイダ設定情報:', {
+                            configured: settings.defaultProvider,
+                            current: currentSelection
+                        });
+                    }
+                }
+            }
+
+            // 対象言語の設定確認
+            if (settings.configuredLanguages && Array.isArray(settings.configuredLanguages)) {
+                var $languageSelect = $('#andw-target-language');
+                var availableOptions = $languageSelect.find('option').length;
+
+                console.log('andW AI Translate - 言語設定情報:', {
+                    configured: settings.configuredLanguages,
+                    availableOptions: availableOptions
+                });
+
+                // 設定された言語が空の場合の警告
+                if (settings.configuredLanguages.length === 0) {
+                    this.showWarning('対象言語が設定されていません。設定画面で言語を選択してください。');
+                }
+            }
+        },
+
+        showWarning: function(message) {
+            var $metaBox = $('#andw-ai-translate-meta-box');
+            var warningHtml = '<div class="andw-warning notice notice-warning inline"><p>' + message + '</p></div>';
+            $metaBox.prepend(warningHtml);
+
+            // 5秒後に自動削除
+            setTimeout(function() {
+                $('.andw-warning').fadeOut();
+            }, 5000);
         },
 
         translatePost: function() {

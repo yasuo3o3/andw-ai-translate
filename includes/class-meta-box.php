@@ -100,6 +100,10 @@ class ANDW_AI_Translate_Meta_Box {
 				'nonce' => wp_create_nonce( 'andw_ai_translate_meta_box' ),
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'postId' => get_the_ID(),
+				'settings' => array(
+					'defaultProvider' => get_option( 'andw_ai_translate_provider', 'openai' ),
+					'configuredLanguages' => get_option( 'andw_ai_translate_languages', array( 'en', 'zh', 'ko' ) ),
+				),
 				'strings' => array(
 					'translating' => __( '翻訳中...', 'andw-ai-translate' ),
 					'translated' => __( '翻訳完了', 'andw-ai-translate' ),
@@ -162,24 +166,68 @@ class ANDW_AI_Translate_Meta_Box {
 				<p>
 					<label for="andw-target-language"><?php esc_html_e( '対象言語', 'andw-ai-translate' ); ?></label>
 					<select id="andw-target-language" name="target_language">
-						<option value="en"><?php esc_html_e( '英語 (English)', 'andw-ai-translate' ); ?></option>
-						<option value="zh"><?php esc_html_e( '中国語（簡体字/中国）', 'andw-ai-translate' ); ?></option>
-						<option value="zh-TW"><?php esc_html_e( '中国語（繁体字/台湾・香港）', 'andw-ai-translate' ); ?></option>
-						<option value="ko"><?php esc_html_e( '韓国語 (한국어)', 'andw-ai-translate' ); ?></option>
-						<option value="fr"><?php esc_html_e( 'フランス語 (Français)', 'andw-ai-translate' ); ?></option>
-						<option value="de"><?php esc_html_e( 'ドイツ語 (Deutsch)', 'andw-ai-translate' ); ?></option>
-						<option value="es"><?php esc_html_e( 'スペイン語 (Español)', 'andw-ai-translate' ); ?></option>
-						<option value="mn"><?php esc_html_e( 'モンゴル語 (монгол хэл)', 'andw-ai-translate' ); ?></option>
+						<?php
+						// 設定画面で選択された対象言語のみを表示
+						$configured_languages = get_option( 'andw_ai_translate_languages', array( 'en', 'zh', 'ko' ) );
+						$all_available_languages = array(
+							'en' => __( '英語 (English)', 'andw-ai-translate' ),
+							'zh' => __( '中国語（簡体字/中国）', 'andw-ai-translate' ),
+							'zh-TW' => __( '中国語（繁体字/台湾・香港）', 'andw-ai-translate' ),
+							'ko' => __( '韓国語 (한국어)', 'andw-ai-translate' ),
+							'fr' => __( 'フランス語 (Français)', 'andw-ai-translate' ),
+							'de' => __( 'ドイツ語 (Deutsch)', 'andw-ai-translate' ),
+							'es' => __( 'スペイン語 (Español)', 'andw-ai-translate' ),
+							'mn' => __( 'モンゴル語 (монгол хэл)', 'andw-ai-translate' ),
+						);
+
+						if ( empty( $configured_languages ) ) {
+							// 設定が空の場合は警告を表示
+							echo '<option value="" disabled>' . esc_html__( '対象言語が設定されていません', 'andw-ai-translate' ) . '</option>';
+						} else {
+							// 設定された言語のみを表示
+							foreach ( $configured_languages as $code ) {
+								if ( isset( $all_available_languages[ $code ] ) ) {
+									echo '<option value="' . esc_attr( $code ) . '">' . esc_html( $all_available_languages[ $code ] ) . '</option>';
+								}
+							}
+						}
+						?>
 					</select>
+					<?php if ( empty( $configured_languages ) ) : ?>
+						<p class="description" style="color: #dc3232;">
+							<?php esc_html_e( '翻訳対象言語を', 'andw-ai-translate' ); ?>
+							<a href="<?php echo esc_url( admin_url( 'options-general.php?page=andw-ai-translate' ) ); ?>">
+								<?php esc_html_e( '設定画面', 'andw-ai-translate' ); ?>
+							</a>
+							<?php esc_html_e( 'で選択してください。', 'andw-ai-translate' ); ?>
+						</p>
+					<?php endif; ?>
 				</p>
 
 				<p>
 					<label for="andw-provider"><?php esc_html_e( 'プロバイダ', 'andw-ai-translate' ); ?></label>
 					<select id="andw-provider" name="provider">
-						<?php foreach ( $available_providers as $key => $name ) : ?>
-							<option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $name ); ?></option>
+						<?php
+						// 設定画面の既定プロバイダを取得
+						$default_provider = get_option( 'andw_ai_translate_provider', 'openai' );
+
+						foreach ( $available_providers as $key => $name ) :
+							$is_selected = ( $key === $default_provider );
+						?>
+							<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $is_selected, true ); ?>>
+								<?php echo esc_html( $name ); ?>
+							</option>
 						<?php endforeach; ?>
 					</select>
+					<p class="description">
+						<?php
+						/* translators: %s: selected provider name */
+						printf(
+							esc_html__( '設定画面の既定プロバイダ「%s」が選択されています', 'andw-ai-translate' ),
+							esc_html( isset( $available_providers[ $default_provider ] ) ? $available_providers[ $default_provider ] : $default_provider )
+						);
+						?>
+					</p>
 				</p>
 			</div>
 
