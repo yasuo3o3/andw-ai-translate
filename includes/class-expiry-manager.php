@@ -249,35 +249,20 @@ class ANDW_AI_Translate_Expiry_Manager {
 		try {
 			// 期限切れチェック
 			if ( $this->is_expired() ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate - 機能無効: 期限切れ' );
-				}
 				return false;
 			}
 
 			// APIキー存在チェック
 			if ( ! class_exists( 'ANDW_AI_Translate_API_Manager' ) ) {
-				error_log( 'andW AI Translate - 機能無効: API管理クラスが見つかりません' );
 				return false;
 			}
 
 			$api_manager = new ANDW_AI_Translate_API_Manager();
 			$has_key = $api_manager->has_api_key();
 
-			if ( ! $has_key ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate - 機能無効: APIキー未設定' );
-				}
-			} else {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate - 機能利用可能' );
-				}
-			}
-
 			return $has_key;
 
 		} catch ( Exception $e ) {
-			error_log( 'andW AI Translate - 機能可用性チェックエラー: ' . $e->getMessage() );
 			return false;
 		}
 	}
