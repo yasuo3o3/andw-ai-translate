@@ -41,37 +41,23 @@ class ANDW_AI_Translate_Translation_Engine {
 	 */
 	public function translate( $text, $target_language, $provider = null ) {
 		try {
-			// デバッグログ: 翻訳処理開始
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf(
-					'andW AI Translate - 翻訳処理開始: Provider=%s, Language=%s, TextLength=%d',
-					$provider ?: 'auto',
-					$target_language,
-					strlen( $text )
-				) );
-			}
-
 			// 依存クラスの初期化確認
 			if ( ! $this->api_manager ) {
-				error_log( 'andW AI Translate - API管理クラスが初期化されていません' );
 				return new WP_Error( 'api_manager_error', __( 'API管理クラスが正しく初期化されていません', 'andw-ai-translate' ) );
 			}
 
 			if ( ! $this->expiry_manager ) {
-				error_log( 'andW AI Translate - 期限管理クラスが初期化されていません' );
 				return new WP_Error( 'expiry_manager_error', __( '期限管理クラスが正しく初期化されていません', 'andw-ai-translate' ) );
 			}
 
 			// 機能の利用可能性チェック
 			if ( ! $this->expiry_manager->is_feature_available() ) {
-				error_log( 'andW AI Translate - 翻訳機能が利用不可' );
 				return new WP_Error( 'feature_unavailable', __( '翻訳機能は現在利用できません', 'andw-ai-translate' ) );
 			}
 
 			// 使用制限チェック
 			$limit_check = $this->check_usage_limits();
 			if ( is_wp_error( $limit_check ) ) {
-				error_log( 'andW AI Translate - 使用制限に達しています: ' . $limit_check->get_error_message() );
 				return $limit_check;
 			}
 
@@ -82,13 +68,11 @@ class ANDW_AI_Translate_Translation_Engine {
 
 			// プロバイダの検証
 			if ( ! in_array( $provider, array( 'openai', 'claude' ), true ) ) {
-				error_log( 'andW AI Translate - 無効なプロバイダ: ' . $provider );
 				return new WP_Error( 'invalid_provider', __( '無効なプロバイダです', 'andw-ai-translate' ) );
 			}
 
 			// APIキーの存在確認
 			if ( ! $this->api_manager->has_api_key( $provider ) ) {
-				error_log( 'andW AI Translate - APIキー未設定: ' . $provider );
 				return new WP_Error( 'no_api_key', __( 'APIキーが設定されていません', 'andw-ai-translate' ) . ': ' . $provider );
 			}
 
@@ -97,7 +81,6 @@ class ANDW_AI_Translate_Translation_Engine {
 			$text = $this->preprocess_text( $text );
 
 			if ( empty( $text ) ) {
-				error_log( 'andW AI Translate - 前処理後にテキストが空になりました' );
 				return new WP_Error( 'empty_text', __( '翻訳するテキストがありません', 'andw-ai-translate' ) );
 			}
 
@@ -105,22 +88,11 @@ class ANDW_AI_Translate_Translation_Engine {
 			$translation_result = $this->execute_translation( $text, $target_language, $provider );
 
 			if ( is_wp_error( $translation_result ) ) {
-				error_log( 'andW AI Translate - 翻訳実行エラー: ' . $translation_result->get_error_message() );
 				return $translation_result;
 			}
 
 			// 使用量の記録
 			$this->record_usage();
-
-			// 成功ログ
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( sprintf(
-					'andW AI Translate - 翻訳成功: Provider=%s, Language=%s, ResultLength=%d',
-					$provider,
-					$target_language,
-					strlen( $translation_result )
-				) );
-			}
 
 			return array(
 				'original_text' => $original_text,
@@ -131,7 +103,6 @@ class ANDW_AI_Translate_Translation_Engine {
 			);
 
 		} catch ( Exception $e ) {
-			error_log( 'andW AI Translate - 翻訳例外エラー: ' . $e->getMessage() );
 			return new WP_Error( 'translation_exception', '翻訳処理でエラーが発生しました: ' . $e->getMessage() );
 		}
 	}
@@ -206,16 +177,11 @@ class ANDW_AI_Translate_Translation_Engine {
 		try {
 			$api_key = $this->api_manager->get_api_key( 'openai' );
 			if ( ! $api_key ) {
-				error_log( 'andW AI Translate - OpenAI APIキーが取得できません' );
 				return new WP_Error( 'no_api_key', __( 'OpenAI APIキーが設定されていません', 'andw-ai-translate' ) );
 			}
 
 			$language_name = $this->get_language_name( $target_language );
 			$prompt = $this->get_translation_prompt( $text, $language_name );
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - OpenAI API呼び出し開始: ' . $target_language );
-			}
 
 			$body = array(
 				'model' => 'gpt-3.5-turbo',
@@ -242,7 +208,6 @@ class ANDW_AI_Translate_Translation_Engine {
 			);
 
 			if ( is_wp_error( $response ) ) {
-				error_log( 'andW AI Translate - OpenAI API接続エラー: ' . $response->get_error_message() );
 				return new WP_Error( 'api_connection_failed', __( 'OpenAI APIへの接続に失敗しました', 'andw-ai-translate' ) . ': ' . $response->get_error_message() );
 			}
 
@@ -250,43 +215,33 @@ class ANDW_AI_Translate_Translation_Engine {
 			$response_body = wp_remote_retrieve_body( $response );
 
 			if ( empty( $response_body ) ) {
-				error_log( 'andW AI Translate - OpenAI API空レスポンス (HTTP ' . $status_code . ')' );
 				return new WP_Error( 'empty_response', __( 'OpenAI APIから空のレスポンスを受信しました', 'andw-ai-translate' ) );
 			}
 
 			$data = json_decode( $response_body, true );
 
 			if ( json_last_error() !== JSON_ERROR_NONE ) {
-				error_log( 'andW AI Translate - OpenAI JSONパースエラー: ' . json_last_error_msg() );
 				return new WP_Error( 'json_parse_error', __( 'OpenAI APIレスポンスのJSON解析に失敗しました', 'andw-ai-translate' ) );
 			}
 
 			if ( $status_code !== 200 ) {
 				$error_message = isset( $data['error']['message'] ) ? $data['error']['message'] : __( 'OpenAI API エラーが発生しました', 'andw-ai-translate' );
-				error_log( 'andW AI Translate - OpenAI APIエラー (HTTP ' . $status_code . '): ' . $error_message );
 				return new WP_Error( 'api_error', $error_message . ' (HTTP ' . $status_code . ')' );
 			}
 
 			if ( ! isset( $data['choices'][0]['message']['content'] ) ) {
-				error_log( 'andW AI Translate - OpenAI API無効レスポンス構造' );
 				return new WP_Error( 'invalid_response', __( 'OpenAI APIから無効な応答を受信しました', 'andw-ai-translate' ) );
 			}
 
 			$translated_text = trim( $data['choices'][0]['message']['content'] );
 
 			if ( empty( $translated_text ) ) {
-				error_log( 'andW AI Translate - OpenAI翻訳結果が空' );
 				return new WP_Error( 'empty_translation', __( 'OpenAI APIから空の翻訳結果を受信しました', 'andw-ai-translate' ) );
-			}
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - OpenAI翻訳成功: 結果長 ' . strlen( $translated_text ) );
 			}
 
 			return $translated_text;
 
 		} catch ( Exception $e ) {
-			error_log( 'andW AI Translate - OpenAI翻訳例外エラー: ' . $e->getMessage() );
 			return new WP_Error( 'openai_exception', 'OpenAI翻訳処理でエラーが発生しました: ' . $e->getMessage() );
 		}
 	}
