@@ -272,11 +272,17 @@ class ANDW_AI_Translate_Translation_Engine {
 			return new WP_Error( 'api_error', $error_message );
 		}
 
-		if ( ! isset( $data['content'][0]['text'] ) ) {
+		if ( empty( $data['content'] ) ) {
 			return new WP_Error( 'invalid_response', __( 'Claude APIから無効な応答を受信しました', 'andw-ai-translate' ) );
 		}
 
-		$translated_text = trim( $data['content'][0]['text'] );
+		$translated_text = '';
+		foreach ( $data['content'] as $block ) {
+			if ( isset( $block['type'] ) && $block['type'] === 'text' ) {
+				$translated_text .= $block['text'];
+			}
+		}
+		$translated_text = trim( $translated_text );
 
 		// Debug logging removed
 
