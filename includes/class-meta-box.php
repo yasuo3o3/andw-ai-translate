@@ -343,14 +343,8 @@ class ANDW_AI_Translate_Meta_Box {
 	 * AJAX: 投稿の翻訳
 	 */
 	public function ajax_translate_post() {
-		// エラーログ: 処理開始
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - AJAX翻訳処理開始' );
-		}
-
 		// 必要なPOSTデータの検証
 		if ( ! isset( $_POST['nonce'], $_POST['post_id'], $_POST['target_language'], $_POST['provider'] ) ) {
-			error_log( 'andW AI Translate - 必須パラメータ不足' );
 			wp_send_json_error( __( '無効なリクエストです: 必須パラメータが不足しています', 'andw-ai-translate' ) );
 		}
 
@@ -359,23 +353,12 @@ class ANDW_AI_Translate_Meta_Box {
 		// nonce と権限チェック
 		if ( ! wp_verify_nonce( sanitize_text_field( $request['nonce'] ), 'andw_ai_translate_meta_box' ) ||
 			! current_user_can( 'edit_posts' ) ) {
-			error_log( 'andW AI Translate - 権限エラーまたはnonce検証失敗' );
 			wp_die( esc_html__( '権限がありません', 'andw-ai-translate' ) );
 		}
 
 		$post_id = absint( $request['post_id'] );
 		$target_language = sanitize_text_field( $request['target_language'] );
 		$provider = sanitize_text_field( $request['provider'] );
-
-		// デバッグログ: リクエスト詳細
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( sprintf(
-				'andW AI Translate - リクエスト詳細: PostID=%d, Language=%s, Provider=%s',
-				$post_id,
-				$target_language,
-				$provider
-			) );
-		}
 
 		try {
 			// 翻訳エンジンの初期化確認
@@ -391,7 +374,6 @@ class ANDW_AI_Translate_Meta_Box {
 			$result = $this->block_parser->translate_post_blocks( $post_id, $target_language, $provider );
 
 			if ( is_wp_error( $result ) ) {
-				error_log( 'andW AI Translate - ブロック翻訳エラー: ' . $result->get_error_message() );
 				wp_send_json_error( 'ブロック翻訳エラー: ' . $result->get_error_message() );
 			}
 
@@ -399,7 +381,6 @@ class ANDW_AI_Translate_Meta_Box {
 			$back_translation = $this->translation_engine->back_translate( $result['translated_content'], 'ja', $provider );
 
 			if ( is_wp_error( $back_translation ) ) {
-				error_log( 'andW AI Translate - 再翻訳エラー: ' . $back_translation->get_error_message() );
 				wp_send_json_error( '再翻訳エラー: ' . $back_translation->get_error_message() );
 			}
 
@@ -411,13 +392,7 @@ class ANDW_AI_Translate_Meta_Box {
 			) );
 
 			if ( ! $save_result ) {
-				error_log( 'andW AI Translate - 翻訳データの保存に失敗' );
 				wp_send_json_error( '翻訳データの保存に失敗しました' );
-			}
-
-			// 成功ログ
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - 翻訳処理成功' );
 			}
 
 			wp_send_json_success( array(
@@ -426,7 +401,6 @@ class ANDW_AI_Translate_Meta_Box {
 			) );
 
 		} catch ( Exception $e ) {
-			error_log( 'andW AI Translate - 例外エラー: ' . $e->getMessage() );
 			wp_send_json_error( 'システムエラー: ' . $e->getMessage() );
 		}
 	}
@@ -436,14 +410,8 @@ class ANDW_AI_Translate_Meta_Box {
 	 * AJAX: A/B比較
 	 */
 	public function ajax_ab_compare() {
-		// エラーログ: 処理開始
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - A/B比較処理開始' );
-		}
-
 		// 必要なPOSTデータの検証
 		if ( ! isset( $_POST['nonce'], $_POST['post_id'], $_POST['target_language'] ) ) {
-			error_log( 'andW AI Translate - A/B比較: 必須パラメータ不足' );
 			wp_send_json_error( __( '無効なリクエストです: 必須パラメータが不足しています', 'andw-ai-translate' ) );
 		}
 
@@ -452,7 +420,6 @@ class ANDW_AI_Translate_Meta_Box {
 		// nonce と権限チェック
 		if ( ! wp_verify_nonce( sanitize_text_field( $request['nonce'] ), 'andw_ai_translate_meta_box' ) ||
 			! current_user_can( 'edit_posts' ) ) {
-			error_log( 'andW AI Translate - A/B比較: 権限エラー' );
 			wp_die( esc_html__( '権限がありません', 'andw-ai-translate' ) );
 		}
 
@@ -469,7 +436,6 @@ class ANDW_AI_Translate_Meta_Box {
 			$provider_keys = array_keys( $providers );
 
 			if ( count( $provider_keys ) < 2 ) {
-				error_log( 'andW AI Translate - A/B比較: 利用可能なプロバイダが不足 (' . count( $provider_keys ) . '個)' );
 				wp_send_json_error( __( 'A/B比較には2つ以上のプロバイダが必要です', 'andw-ai-translate' ) );
 			}
 
@@ -477,19 +443,13 @@ class ANDW_AI_Translate_Meta_Box {
 
 			// 各プロバイダで翻訳実行
 			foreach ( array_slice( $provider_keys, 0, 2 ) as $provider ) {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate - A/B比較: プロバイダ ' . $provider . ' で翻訳実行中' );
-				}
-
 				$translation = $this->block_parser->translate_post_blocks( $post_id, $target_language, $provider );
 				if ( is_wp_error( $translation ) ) {
-					error_log( 'andW AI Translate - A/B比較翻訳エラー (' . $provider . '): ' . $translation->get_error_message() );
 					wp_send_json_error( 'プロバイダ ' . $provider . ' の翻訳エラー: ' . $translation->get_error_message() );
 				}
 
 				$back_translation = $this->translation_engine->back_translate( $translation['translated_content'], 'ja', $provider );
 				if ( is_wp_error( $back_translation ) ) {
-					error_log( 'andW AI Translate - A/B比較再翻訳エラー (' . $provider . '): ' . $back_translation->get_error_message() );
 					// 再翻訳エラーは警告程度に留める
 					$back_translation = array( 'back_translated_text' => '再翻訳に失敗しました: ' . $back_translation->get_error_message() );
 				}
@@ -500,15 +460,9 @@ class ANDW_AI_Translate_Meta_Box {
 				);
 			}
 
-			// 成功ログ
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - A/B比較処理成功: ' . count( $results ) . '個のプロバイダで完了' );
-			}
-
 			wp_send_json_success( $results );
 
 		} catch ( Exception $e ) {
-			error_log( 'andW AI Translate - A/B比較例外エラー: ' . $e->getMessage() );
 			wp_send_json_error( 'A/B比較システムエラー: ' . $e->getMessage() );
 		}
 	}
@@ -517,14 +471,8 @@ class ANDW_AI_Translate_Meta_Box {
 	 * AJAX: 翻訳承認
 	 */
 	public function ajax_approve_translation() {
-		// エラーログ: 処理開始
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'andW AI Translate - 翻訳承認処理開始' );
-		}
-
 		// 必要なPOSTデータの検証
 		if ( ! isset( $_POST['nonce'], $_POST['post_id'], $_POST['target_language'] ) ) {
-			error_log( 'andW AI Translate - 翻訳承認: 必須パラメータ不足' );
 			wp_send_json_error( __( '無効なリクエストです: 必須パラメータが不足しています', 'andw-ai-translate' ) );
 		}
 
@@ -533,7 +481,6 @@ class ANDW_AI_Translate_Meta_Box {
 		// nonce と権限チェック
 		if ( ! wp_verify_nonce( sanitize_text_field( $request['nonce'] ), 'andw_ai_translate_meta_box' ) ||
 			! current_user_can( 'edit_posts' ) ) {
-			error_log( 'andW AI Translate - 翻訳承認: 権限エラー' );
 			wp_die( esc_html__( '権限がありません', 'andw-ai-translate' ) );
 		}
 
@@ -544,7 +491,6 @@ class ANDW_AI_Translate_Meta_Box {
 			// 承認済みデータとして保存
 			$pending_data = get_post_meta( $post_id, '_andw_ai_translate_pending', true );
 			if ( ! $pending_data ) {
-				error_log( 'andW AI Translate - 翻訳承認: 承認待ちデータが見つからない (PostID: ' . $post_id . ')' );
 				wp_send_json_error( __( '承認する翻訳データが見つかりません', 'andw-ai-translate' ) );
 			}
 
@@ -555,36 +501,18 @@ class ANDW_AI_Translate_Meta_Box {
 				$result = $page_generator->create_translated_page( $post_id, $target_language, $pending_data );
 
 				if ( is_wp_error( $result ) ) {
-					error_log( 'andW AI Translate - ページ生成エラー: ' . $result->get_error_message() );
 					wp_send_json_error( __( 'ページ生成に失敗しました: ', 'andw-ai-translate' ) . $result->get_error_message() );
 				}
 				$translated_page_id = $result;
-
-				// ページ生成結果をログに記録（デバッグ時のみ）
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate - ページ生成成功: 投稿ID ' . $translated_page_id );
-				}
-			} else {
-				error_log( 'andW AI Translate - 警告: ページジェネレータークラスが見つかりません' );
 			}
 
 			// 承認済みデータとして保存
 			$approval_result = update_post_meta( $post_id, '_andw_ai_translate_approved_' . $target_language, $pending_data );
 			if ( ! $approval_result ) {
-				error_log( 'andW AI Translate - 承認データの保存に失敗' );
 				wp_send_json_error( '承認データの保存に失敗しました' );
 			}
 
-			$deletion_result = delete_post_meta( $post_id, '_andw_ai_translate_pending' );
-			if ( ! $deletion_result ) {
-				error_log( 'andW AI Translate - 承認待ちデータの削除に失敗' );
-				// エラーにはしないが警告ログを出力
-			}
-
-			// 成功ログ
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - 翻訳承認処理成功 (PostID: ' . $post_id . ', Language: ' . $target_language . ')' );
-			}
+			delete_post_meta( $post_id, '_andw_ai_translate_pending' );
 
 			wp_send_json_success( array(
 				'message' => __( '翻訳を承認しました', 'andw-ai-translate' ),
@@ -592,7 +520,6 @@ class ANDW_AI_Translate_Meta_Box {
 			) );
 
 		} catch ( Exception $e ) {
-			error_log( 'andW AI Translate - 翻訳承認例外エラー: ' . $e->getMessage() );
 			wp_send_json_error( '翻訳承認システムエラー: ' . $e->getMessage() );
 		}
 	}
