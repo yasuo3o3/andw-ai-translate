@@ -60,18 +60,15 @@ class ANDW_AI_Translate_API_Manager {
 		try {
 			$key = $this->get_encryption_key();
 			if ( empty( $key ) ) {
-				error_log( 'andW AI Translate - 暗号化キーが取得できません' );
 				return false;
 			}
 
 			$data = base64_decode( $encrypted_data );
 			if ( $data === false ) {
-				error_log( 'andW AI Translate - Base64デコードに失敗' );
 				return false;
 			}
 
 			if ( strlen( $data ) < 16 ) {
-				error_log( 'andW AI Translate - 暗号化データが短すぎます' );
 				return false;
 			}
 
@@ -81,14 +78,12 @@ class ANDW_AI_Translate_API_Manager {
 			$decrypted = openssl_decrypt( $encrypted, 'AES-256-CBC', $key, 0, $iv );
 
 			if ( $decrypted === false ) {
-				error_log( 'andW AI Translate - 復号化処理に失敗' );
 				return false;
 			}
 
 			return $decrypted;
 
 		} catch ( Exception $e ) {
-			error_log( 'andW AI Translate - 復号化例外エラー: ' . $e->getMessage() );
 			return false;
 		}
 	}
@@ -125,7 +120,6 @@ class ANDW_AI_Translate_API_Manager {
 	 */
 	public function get_api_key( $provider ) {
 		if ( ! in_array( $provider, array( 'openai', 'claude' ), true ) ) {
-			error_log( 'andW AI Translate - 無効なプロバイダ: ' . $provider );
 			return false;
 		}
 
@@ -133,21 +127,16 @@ class ANDW_AI_Translate_API_Manager {
 		$encrypted_key = get_option( $option_name );
 
 		if ( ! $encrypted_key ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - APIキーが保存されていません: ' . $provider );
-			}
 			return false;
 		}
 
 		$decrypted_key = $this->decrypt( $encrypted_key );
 
 		if ( $decrypted_key === false ) {
-			error_log( 'andW AI Translate - APIキーの復号化に失敗: ' . $provider );
 			return false;
 		}
 
 		if ( empty( $decrypted_key ) ) {
-			error_log( 'andW AI Translate - 復号化されたAPIキーが空: ' . $provider );
 			return false;
 		}
 
@@ -363,10 +352,6 @@ class ANDW_AI_Translate_API_Manager {
 				$api_key = $this->get_api_key( $provider );
 				$has_key = ! empty( $api_key );
 
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					error_log( 'andW AI Translate - APIキー存在確認 (' . $provider . '): ' . ( $has_key ? 'あり' : 'なし' ) );
-				}
-
 				return $has_key;
 			}
 
@@ -376,14 +361,9 @@ class ANDW_AI_Translate_API_Manager {
 
 			$has_any = $has_openai || $has_claude;
 
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( 'andW AI Translate - APIキー存在確認（全体）: OpenAI=' . ( $has_openai ? 'あり' : 'なし' ) . ', Claude=' . ( $has_claude ? 'あり' : 'なし' ) );
-			}
-
 			return $has_any;
 
 		} catch ( Exception $e ) {
-			error_log( 'andW AI Translate - APIキー存在確認エラー: ' . $e->getMessage() );
 			return false;
 		}
 	}
