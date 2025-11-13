@@ -227,8 +227,8 @@
         },
 
         formatContent: function(content) {
-            // HTMLコンテンツの表示用フォーマット
-            return $('<div>').text(content).html().replace(/\n/g, '<br>');
+            // シンプルな改行変換のみ（HTMLエスケープを除去）
+            return content.replace(/\n/g, '<br>');
         },
 
 
