@@ -204,15 +204,71 @@ class ANDW_AI_Translate_Block_Parser {
 	 * @return string 更新されたHTML
 	 */
 	private function replace_translatable_content( $html, $translated_text ) {
-		// シンプルな置換ロジック（より複雑な場合はDOMパーサーを使用）
-		$original_text = wp_strip_all_tags( $html );
-		$original_text = trim( $original_text );
+		// HTMLエンティティをデコード
+		$html = html_entity_decode( $html, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 
-		if ( ! empty( $original_text ) ) {
-			return str_replace( $original_text, $translated_text, $html );
+		// DOMパーサーによる改良版置換
+		if ( function_exists( 'mb_convert_encoding' ) && class_exists( 'DOMDocument' ) ) {
+			$dom = new DOMDocument();
+			$dom->encoding = 'UTF-8';
+
+			// HTMLエラーを無視してロード
+			libxml_use_internal_errors( true );
+			$dom->loadHTML( '<?xml encoding="UTF-8">' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+			libxml_clear_errors();
+
+			// テキストノードのみを抽出して置換
+			$xpath = new DOMXPath( $dom );
+			$textNodes = $xpath->query( '//text()[normalize-space()]' );
+
+			if ( $textNodes->length > 0 ) {
+				$original_text = '';
+				foreach ( $textNodes as $node ) {
+					$original_text .= trim( $node->nodeValue );
+				}
+
+				if ( ! empty( $original_text ) && ! empty( $translated_text ) ) {
+					// 最初のテキストノードに翻訳文を設定
+					$textNodes->item( 0 )->nodeValue = $translated_text;
+
+					// 残りのテキストノードを削除
+					for ( $i = $textNodes->length - 1; $i > 0; $i-- ) {
+						$node = $textNodes->item( $i );
+						if ( $node->parentNode ) {
+							$node->parentNode->removeChild( $node );
+						}
+					}
+
+					// HTML出力
+					$html = $dom->saveHTML();
+
+					// XML宣言とbody/htmlタグを除去
+					$html = preg_replace( '/^<\?xml[^>]+>\s*/', '', $html );
+					$html = preg_replace( '/<\/?(?:html|body)[^>]*>/i', '', $html );
+					$html = trim( $html );
+				}
+			}
+		} else {
+			// フォールバック: 正規表現による改良版置換
+			$original_text = wp_strip_all_tags( $html );
+			$original_text = trim( preg_replace( '/\s+/', ' ', $original_text ) );
+
+			if ( ! empty( $original_text ) && ! empty( $translated_text ) ) {
+				// より柔軟な置換（前後の空白を考慮）
+				$pattern = '/>' . preg_quote( $original_text, '/' ) . '</';
+				$replacement = '>' . esc_html( $translated_text ) . '<';
+
+				if ( preg_match( $pattern, $html ) ) {
+					$html = preg_replace( $pattern, $replacement, $html, 1 );
+				} else {
+					// 単純置換もトライ
+					$html = str_replace( $original_text, esc_html( $translated_text ), $html );
+				}
+			}
 		}
 
-		return $html;
+		// HTMLエンティティを再エンコード
+		return htmlspecialchars( $html, ENT_QUOTES | ENT_HTML5, 'UTF-8', false );
 	}
 
 	/**
@@ -403,7 +459,7 @@ class ANDW_AI_Translate_Block_Parser {
 					return $retranslated_block;
 				}
 
-				$retranslated_blocks[] = $retranslated_block['block'];
+				$retranslated_blocks[] = $retranslated_block['translated_block'];
 
 				// 翻訳データを記録
 				if ( isset( $retranslated_block['translation_data'] ) ) {
@@ -419,6 +475,7 @@ class ANDW_AI_Translate_Block_Parser {
 
 		return array(
 			'translated_content' => $retranslated_content,
+			'back_translated_text' => $retranslated_content,
 			'translation_data' => $translation_data,
 			'blocks' => $retranslated_blocks,
 			'provider' => $provider,
