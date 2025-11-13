@@ -227,10 +227,14 @@ class ANDW_AI_Translate_Translation_Engine {
 			return new WP_Error( 'no_api_key', __( 'Claude APIキーが設定されていません', 'andw-ai-translate' ) );
 		}
 
+		// レート制限チェック
+		$rate_limit_check = $this->check_claude_rate_limit();
+		if ( is_wp_error( $rate_limit_check ) ) {
+			return $rate_limit_check;
+		}
+
 		$language_name = $this->get_language_name( $target_language );
 		$prompt = $this->get_translation_prompt( $text, $language_name );
-
-		// Debug logging removed
 
 		$body = array(
 			'model' => 'claude-3-haiku-20240307',
@@ -244,32 +248,66 @@ class ANDW_AI_Translate_Translation_Engine {
 			),
 		);
 
-		$response = wp_remote_post(
-			'https://api.anthropic.com/v1/messages',
-			array(
-				'headers' => array(
-					'x-api-key' => $api_key,
-					'Content-Type' => 'application/json',
-					'anthropic-version' => '2023-06-01',
-				),
-				'body' => wp_json_encode( $body ),
-				'timeout' => 60,
-			)
-		);
+		$max_retries = 3;
+		$retry_count = 0;
+		$base_delay = 1; // 初回待機時間（秒）
 
-		if ( is_wp_error( $response ) ) {
-			return new WP_Error( 'api_error', __( 'Claude APIへの接続に失敗しました', 'andw-ai-translate' ) );
-		}
+		while ( $retry_count <= $max_retries ) {
+			$response = wp_remote_post(
+				'https://api.anthropic.com/v1/messages',
+				array(
+					'headers' => array(
+						'x-api-key' => $api_key,
+						'Content-Type' => 'application/json',
+						'anthropic-version' => '2023-06-01',
+					),
+					'body' => wp_json_encode( $body ),
+					'timeout' => 60,
+				)
+			);
 
-		$status_code = wp_remote_retrieve_response_code( $response );
-		$response_body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $response_body, true );
+			if ( is_wp_error( $response ) ) {
+				if ( $retry_count < $max_retries ) {
+					$retry_count++;
+					sleep( $base_delay * pow( 2, $retry_count - 1 ) );
+					continue;
+				}
+				return new WP_Error( 'api_error', __( 'Claude APIへの接続に失敗しました', 'andw-ai-translate' ) );
+			}
 
-		// Debug logging removed
+			$status_code = wp_remote_retrieve_response_code( $response );
+			$response_body = wp_remote_retrieve_body( $response );
+			$data = json_decode( $response_body, true );
 
-		if ( $status_code !== 200 ) {
-			$error_message = isset( $data['error']['message'] ) ? $data['error']['message'] : __( 'Claude API エラーが発生しました', 'andw-ai-translate' );
-			return new WP_Error( 'api_error', $error_message );
+			// レート制限・過負荷エラーの処理
+			if ( $status_code === 429 || $status_code === 529 ||
+				( isset( $data['error']['type'] ) && $data['error']['type'] === 'overloaded_error' ) ) {
+
+				if ( $retry_count < $max_retries ) {
+					$retry_count++;
+					$delay = $base_delay * pow( 2, $retry_count - 1 );
+
+					// overloaded_errorの場合は長めに待機
+					if ( isset( $data['error']['type'] ) && $data['error']['type'] === 'overloaded_error' ) {
+						$delay = max( $delay, 10 );
+					}
+
+					sleep( $delay );
+					continue;
+				} else {
+					$error_message = __( 'Claude APIが過負荷状態です。しばらく時間をおいて再試行してください', 'andw-ai-translate' );
+					return new WP_Error( 'api_overloaded', $error_message );
+				}
+			}
+
+			// その他のエラー
+			if ( $status_code !== 200 ) {
+				$error_message = isset( $data['error']['message'] ) ? $data['error']['message'] : __( 'Claude API エラーが発生しました', 'andw-ai-translate' );
+				return new WP_Error( 'api_error', $error_message );
+			}
+
+			// 成功時はループを抜ける
+			break;
 		}
 
 		if ( empty( $data['content'] ) ) {
@@ -409,6 +447,29 @@ class ANDW_AI_Translate_Translation_Engine {
 
 		update_option( 'andw_ai_translate_usage_daily', $daily_usage + 1 );
 		update_option( 'andw_ai_translate_usage_monthly', $monthly_usage + 1 );
+	}
+
+	/**
+	 * Claude APIのレート制限チェック
+	 *
+	 * @return bool|WP_Error 制限内の場合はtrue、制限に達している場合はWP_Error
+	 */
+	private function check_claude_rate_limit() {
+		$last_call_time = get_transient( 'andw_ai_translate_claude_last_call' );
+		$min_interval = 1; // 最小間隔（秒）
+
+		if ( $last_call_time !== false ) {
+			$elapsed = time() - $last_call_time;
+			if ( $elapsed < $min_interval ) {
+				$wait_time = $min_interval - $elapsed;
+				sleep( $wait_time );
+			}
+		}
+
+		// 現在の時刻を記録
+		set_transient( 'andw_ai_translate_claude_last_call', time(), 60 );
+
+		return true;
 	}
 
 	/**
