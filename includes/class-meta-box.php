@@ -251,6 +251,19 @@ class ANDW_AI_Translate_Meta_Box {
 			<div id="andw-translation-results" style="display: none;">
 				<h4><?php esc_html_e( '翻訳結果', 'andw-ai-translate' ); ?></h4>
 
+				<!-- タイトル翻訳結果の表示 -->
+				<div class="andw-title-translation-pair">
+					<div class="andw-translation-item">
+						<h5><?php esc_html_e( '翻訳されたタイトル', 'andw-ai-translate' ); ?></h5>
+						<div id="andw-translated-title" class="andw-title-display"></div>
+					</div>
+
+					<div class="andw-translation-item">
+						<h5><?php esc_html_e( '再翻訳されたタイトル（品質確認）', 'andw-ai-translate' ); ?></h5>
+						<div id="andw-back-translated-title" class="andw-title-display"></div>
+					</div>
+				</div>
+
 				<!-- 翻訳と再翻訳の表示 -->
 				<div class="andw-translation-pair">
 					<div class="andw-translation-item">
@@ -286,8 +299,21 @@ class ANDW_AI_Translate_Meta_Box {
 
 					<div id="original-text-container" style="display: none;">
 						<h5><?php esc_html_e( '参考：日本語原文', 'andw-ai-translate' ); ?></h5>
-						<div class="original-content">
-							<?php echo wp_kses_post( $this->process_content_for_original_display( $post->post_content ) ); ?>
+
+						<!-- 元タイトル表示 -->
+						<div class="original-title-section">
+							<h6><?php esc_html_e( '元タイトル', 'andw-ai-translate' ); ?></h6>
+							<div class="original-title">
+								<?php echo esc_html( $post->post_title ); ?>
+							</div>
+						</div>
+
+						<!-- 元本文表示 -->
+						<div class="original-content-section">
+							<h6><?php esc_html_e( '元本文', 'andw-ai-translate' ); ?></h6>
+							<div class="original-content">
+								<?php echo wp_kses_post( $this->process_content_for_original_display( $post->post_content ) ); ?>
+							</div>
 						</div>
 						<div class="original-text-info">
 							<small class="description">
@@ -383,6 +409,18 @@ class ANDW_AI_Translate_Meta_Box {
 
 			if ( is_wp_error( $back_translation ) ) {
 				wp_send_json_error( '再翻訳エラー: ' . $back_translation->get_error_message() );
+			}
+
+			// タイトルの再翻訳（品質確認用）
+			$back_translated_title = null;
+			if ( ! empty( $result['translated_title'] ) ) {
+				$title_back_translation = $this->translation_engine->back_translate( $result['translated_title'], 'ja', $provider );
+
+				if ( ! is_wp_error( $title_back_translation ) && isset( $title_back_translation['back_translated_text'] ) ) {
+					$back_translated_title = $title_back_translation['back_translated_text'];
+					// 再翻訳データにタイトルを追加
+					$back_translation['back_translated_title'] = $back_translated_title;
+				}
 			}
 
 			// 結果の保存（承認前の一時データ）

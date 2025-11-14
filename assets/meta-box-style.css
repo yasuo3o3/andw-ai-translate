@@ -468,3 +468,55 @@
 		padding: 10px;
 	}
 }
+
+/* タイトル翻訳表示 */
+.andw-title-translation-pair {
+	margin-bottom: 20px;
+	padding: 15px;
+	border: 1px solid #e1e1e1;
+	border-radius: 4px;
+	background: #f9f9f9;
+}
+
+.andw-title-display {
+	min-height: 40px;
+	padding: 10px;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	background: white;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.4;
+	color: #333;
+}
+
+.andw-title-display:empty:before {
+	content: "翻訳中...";
+	color: #999;
+	font-style: italic;
+	font-weight: normal;
+}
+
+/* 元タイトル・元本文セクション */
+.original-title-section,
+.original-content-section {
+	margin-bottom: 15px;
+}
+
+.original-title-section h6,
+.original-content-section h6 {
+	margin: 0 0 8px 0;
+	font-size: 12px;
+	font-weight: bold;
+	color: #666;
+}
+
+.original-title {
+	padding: 8px 10px;
+	background: #f9f9f9;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #333;
+}

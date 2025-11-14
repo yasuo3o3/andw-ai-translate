@@ -328,6 +328,14 @@
             // デバッグログ: データ構造確認
             console.log('andW AI Translate - 翻訳データ構造:', data);
 
+            // タイトル翻訳結果の表示
+            var translatedTitle = data.translation.translated_title || '';
+            $('#andw-translated-title').html(this.formatTitle(translatedTitle));
+
+            // タイトル再翻訳結果の表示（品質確認用）
+            var backTranslatedTitle = data.back_translation.back_translated_title || '';
+            $('#andw-back-translated-title').html(this.formatTitle(backTranslatedTitle));
+
             // 翻訳結果の表示（英語など目標言語）
             var translatedContent = data.translation.translated_content || '';
             $('#andw-translated-content').html(this.formatContent(translatedContent));
@@ -337,6 +345,8 @@
             $('#andw-back-translated-content').html(this.formatContent(backTranslatedContent));
 
             console.log('andW AI Translate - 表示内容:', {
+                translated_title: translatedTitle,
+                back_translated_title: backTranslatedTitle,
                 translated: translatedContent,
                 back_translated: backTranslatedContent
             });
@@ -369,6 +379,14 @@
         formatContent: function(content) {
             // HTMLコンテンツの表示用フォーマット
             return $('<div>').text(content).html().replace(/\n/g, '<br>');
+        },
+
+        formatTitle: function(title) {
+            // タイトルテキストの表示用フォーマット（HTMLエスケープのみ）
+            if (!title || title.trim() === '') {
+                return '<span style="color: #999; font-style: italic;">翻訳されていません</span>';
+            }
+            return $('<div>').text(title.trim()).html();
         },
 
 
