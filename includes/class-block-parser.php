@@ -58,7 +58,6 @@ class ANDW_AI_Translate_Block_Parser {
 				$title_translation = $title_result['translated_text'];
 			} else {
 				$title_error = 'タイトル翻訳結果が空です';
-				error_log( 'andW AI Translate - ' . $title_error . ' - レスポンス構造: ' . print_r( $title_result, true ) );
 			}
 		}
 
