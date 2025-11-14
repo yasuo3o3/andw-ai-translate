@@ -392,8 +392,6 @@ class ANDW_AI_Translate_Meta_Box {
 		// 日本語から翻訳する場合は、日本語が元言語
 		$source_language = ( $target_language === 'ja' ) ? 'en' : 'ja';
 
-		error_log( 'andW AI Translate - 翻訳方向: 元言語=' . $source_language . ' → 目標言語=' . $target_language );
-
 		try {
 			// 翻訳エンジンの初期化確認
 			if ( ! $this->block_parser ) {
@@ -422,27 +420,19 @@ class ANDW_AI_Translate_Meta_Box {
 			$back_translated_title = null;
 			$title_back_error = null;
 
-			error_log( 'andW AI Translate - タイトル再翻訳処理開始' );
-
 			// タイトル翻訳があるかチェック
 			if ( ! empty( $result['translated_title'] ) ) {
-				error_log( 'andW AI Translate - 翻訳済みタイトル: ' . $result['translated_title'] );
-
 				$title_back_translation = $this->translation_engine->back_translate( $result['translated_title'], $source_language, $provider );
 
 				if ( is_wp_error( $title_back_translation ) ) {
 					$title_back_error = $title_back_translation->get_error_message();
-					error_log( 'andW AI Translate - タイトル再翻訳エラー: ' . $title_back_error );
 				} elseif ( isset( $title_back_translation['back_translated_text'] ) && ! empty( $title_back_translation['back_translated_text'] ) ) {
 					$back_translated_title = $title_back_translation['back_translated_text'];
-					error_log( 'andW AI Translate - タイトル再翻訳成功: ' . $back_translated_title );
 				} else {
 					$title_back_error = 'タイトル再翻訳結果が空です';
-					error_log( 'andW AI Translate - ' . $title_back_error );
 				}
 			} else {
 				$reason = isset( $result['title_error'] ) ? $result['title_error'] : 'タイトル翻訳が実行されていません';
-				error_log( 'andW AI Translate - タイトル再翻訳をスキップ: ' . $reason );
 				$title_back_error = 'タイトル翻訳が失敗したため再翻訳もスキップされました: ' . $reason;
 			}
 
