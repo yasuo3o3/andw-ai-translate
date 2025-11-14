@@ -330,11 +330,13 @@
 
             // タイトル翻訳結果の表示
             var translatedTitle = data.translation.translated_title || '';
-            $('#andw-translated-title').html(this.formatTitle(translatedTitle));
+            var titleError = data.translation.title_error || null;
+            $('#andw-translated-title').html(this.formatTitle(translatedTitle, titleError));
 
             // タイトル再翻訳結果の表示（品質確認用）
             var backTranslatedTitle = data.back_translation.back_translated_title || '';
-            $('#andw-back-translated-title').html(this.formatTitle(backTranslatedTitle));
+            var titleBackError = data.back_translation.title_back_error || null;
+            $('#andw-back-translated-title').html(this.formatTitle(backTranslatedTitle, titleBackError));
 
             // 翻訳結果の表示（英語など目標言語）
             var translatedContent = data.translation.translated_content || '';
@@ -381,11 +383,16 @@
             return $('<div>').text(content).html().replace(/\n/g, '<br>');
         },
 
-        formatTitle: function(title) {
+        formatTitle: function(title, error) {
             // タイトルテキストの表示用フォーマット（HTMLエスケープのみ）
+            if (error) {
+                return '<span style="color: #dc3232; font-style: italic; font-size: 12px;">エラー: ' + $('<div>').text(error).html() + '</span>';
+            }
+
             if (!title || title.trim() === '') {
                 return '<span style="color: #999; font-style: italic;">翻訳されていません</span>';
             }
+
             return $('<div>').text(title.trim()).html();
         },
 

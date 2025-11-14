@@ -413,15 +413,35 @@ class ANDW_AI_Translate_Meta_Box {
 
 			// タイトルの再翻訳（品質確認用）
 			$back_translated_title = null;
+			$title_back_error = null;
+
+			error_log( 'andW AI Translate - タイトル再翻訳処理開始' );
+
+			// タイトル翻訳があるかチェック
 			if ( ! empty( $result['translated_title'] ) ) {
+				error_log( 'andW AI Translate - 翻訳済みタイトル: ' . $result['translated_title'] );
+
 				$title_back_translation = $this->translation_engine->back_translate( $result['translated_title'], 'ja', $provider );
 
-				if ( ! is_wp_error( $title_back_translation ) && isset( $title_back_translation['back_translated_text'] ) ) {
+				if ( is_wp_error( $title_back_translation ) ) {
+					$title_back_error = $title_back_translation->get_error_message();
+					error_log( 'andW AI Translate - タイトル再翻訳エラー: ' . $title_back_error );
+				} elseif ( isset( $title_back_translation['back_translated_text'] ) && ! empty( $title_back_translation['back_translated_text'] ) ) {
 					$back_translated_title = $title_back_translation['back_translated_text'];
-					// 再翻訳データにタイトルを追加
-					$back_translation['back_translated_title'] = $back_translated_title;
+					error_log( 'andW AI Translate - タイトル再翻訳成功: ' . $back_translated_title );
+				} else {
+					$title_back_error = 'タイトル再翻訳結果が空です';
+					error_log( 'andW AI Translate - ' . $title_back_error );
 				}
+			} else {
+				$reason = isset( $result['title_error'] ) ? $result['title_error'] : 'タイトル翻訳が実行されていません';
+				error_log( 'andW AI Translate - タイトル再翻訳をスキップ: ' . $reason );
+				$title_back_error = 'タイトル翻訳が失敗したため再翻訳もスキップされました: ' . $reason;
 			}
+
+			// 再翻訳データにタイトルと エラー情報を追加
+			$back_translation['back_translated_title'] = $back_translated_title;
+			$back_translation['title_back_error'] = $title_back_error;
 
 			// 結果の保存（承認前の一時データ）
 			$save_result = update_post_meta( $post_id, '_andw_ai_translate_pending', array(
