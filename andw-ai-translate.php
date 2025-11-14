@@ -2,7 +2,7 @@
 /**
  * Plugin Name: andW AI Translate
  * Description: 日本語から多言語への翻訳プラグイン。再翻訳による確認、ブロック構造維持、A/B比較機能を提供。
- * Version: 0.1.0
+ * Version: 0.1.1
  * Author: yasuo3o3
  * Author URI: https://yasuo-o.xyz/
  * License: GPLv2 or later
