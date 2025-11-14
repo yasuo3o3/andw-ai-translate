@@ -178,6 +178,7 @@ class ANDW_AI_Translate_Meta_Box {
 							'de' => __( 'ドイツ語 (Deutsch)', 'andw-ai-translate' ),
 							'es' => __( 'スペイン語 (Español)', 'andw-ai-translate' ),
 							'mn' => __( 'モンゴル語 (монгол хэл)', 'andw-ai-translate' ),
+							'ja' => __( '日本語 (Japanese)', 'andw-ai-translate' ),
 						);
 
 						if ( empty( $configured_languages ) ) {

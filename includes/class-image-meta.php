@@ -78,6 +78,7 @@ class ANDW_AI_Translate_Image_Meta {
 			'fr' => __( 'フランス語', 'andw-ai-translate' ),
 			'de' => __( 'ドイツ語', 'andw-ai-translate' ),
 			'es' => __( 'スペイン語', 'andw-ai-translate' ),
+			'ja' => __( '日本語', 'andw-ai-translate' ),
 		);
 
 		?>
