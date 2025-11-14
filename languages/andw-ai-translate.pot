@@ -1,0 +1,17 @@
+# Copyright (C) 2024 yasuo3o3
+# This file is distributed under the GPLv2 or later.
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: andW AI Translate 0.1.0\n"
+"Report-Msgid-Bugs-To: https://yasuo-o.xyz/\n"
+"POT-Creation-Date: 2024-11-14 10:06+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: WordPress\n"
+"X-Domain: andw-ai-translate\n"
