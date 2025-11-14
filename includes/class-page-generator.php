@@ -403,6 +403,16 @@ class ANDW_AI_Translate_Page_Generator {
 	 * パーマリンクに言語情報を追加（オプション）
 	 */
 	public function add_language_to_permalink( $permalink, $post ) {
+		// $postが整数の場合はWP_Postオブジェクトを取得
+		if ( is_numeric( $post ) ) {
+			$post = get_post( $post );
+		}
+
+		// $postがnullまたは無効な場合は早期リターン
+		if ( ! $post || ! isset( $post->ID ) ) {
+			return $permalink;
+		}
+
 		$language = get_post_meta( $post->ID, '_andw_ai_translate_language', true );
 
 		if ( $language && $language !== 'ja' ) {
