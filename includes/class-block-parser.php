@@ -50,22 +50,16 @@ class ANDW_AI_Translate_Block_Parser {
 		$title_error = null;
 
 		if ( ! empty( $post->post_title ) ) {
-			error_log( 'andW AI Translate - タイトル翻訳開始: ' . $post->post_title );
-
 			$title_result = $this->translation_engine->translate( $post->post_title, $target_language, $provider );
 
 			if ( is_wp_error( $title_result ) ) {
 				$title_error = $title_result->get_error_message();
-				error_log( 'andW AI Translate - タイトル翻訳エラー: ' . $title_error );
 			} elseif ( isset( $title_result['translated_text'] ) && ! empty( $title_result['translated_text'] ) ) {
 				$title_translation = $title_result['translated_text'];
-				error_log( 'andW AI Translate - タイトル翻訳成功: ' . $title_translation );
 			} else {
 				$title_error = 'タイトル翻訳結果が空です';
 				error_log( 'andW AI Translate - ' . $title_error . ' - レスポンス構造: ' . print_r( $title_result, true ) );
 			}
-		} else {
-			error_log( 'andW AI Translate - 元タイトルが空のためタイトル翻訳をスキップ' );
 		}
 
 		// ブロック単位での翻訳
