@@ -387,6 +387,13 @@ class ANDW_AI_Translate_Meta_Box {
 		$target_language = sanitize_text_field( $request['target_language'] );
 		$provider = sanitize_text_field( $request['provider'] );
 
+		// 再翻訳用のソース言語を決定
+		// 日本語に翻訳する場合は、元言語は英語と仮定（最も一般的）
+		// 日本語から翻訳する場合は、日本語が元言語
+		$source_language = ( $target_language === 'ja' ) ? 'en' : 'ja';
+
+		error_log( 'andW AI Translate - 翻訳方向: 元言語=' . $source_language . ' → 目標言語=' . $target_language );
+
 		try {
 			// 翻訳エンジンの初期化確認
 			if ( ! $this->block_parser ) {
@@ -405,7 +412,7 @@ class ANDW_AI_Translate_Meta_Box {
 			}
 
 			// 再翻訳の実行（品質確認用：翻訳結果を元の言語に戻す）
-			$back_translation = $this->translation_engine->back_translate( $result['translated_content'], 'ja', $provider );
+			$back_translation = $this->translation_engine->back_translate( $result['translated_content'], $source_language, $provider );
 
 			if ( is_wp_error( $back_translation ) ) {
 				wp_send_json_error( '再翻訳エラー: ' . $back_translation->get_error_message() );
@@ -421,7 +428,7 @@ class ANDW_AI_Translate_Meta_Box {
 			if ( ! empty( $result['translated_title'] ) ) {
 				error_log( 'andW AI Translate - 翻訳済みタイトル: ' . $result['translated_title'] );
 
-				$title_back_translation = $this->translation_engine->back_translate( $result['translated_title'], 'ja', $provider );
+				$title_back_translation = $this->translation_engine->back_translate( $result['translated_title'], $source_language, $provider );
 
 				if ( is_wp_error( $title_back_translation ) ) {
 					$title_back_error = $title_back_translation->get_error_message();
